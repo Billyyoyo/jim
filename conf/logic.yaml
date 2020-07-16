@@ -1,0 +1,15 @@
+server:
+  mode: debug
+  port: 4000
+  logfile: ./log/logic-
+
+redis:
+  addr: localhost:6379
+  prefix: jim
+
+database:
+  addr: localhost
+  port: 3306
+  user: root
+  password: hanjing
+  db: jim

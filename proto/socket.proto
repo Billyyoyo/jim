@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+option go_package="rpc";
+
+import "msg.proto";
+import "action.proto";
+import "notification.proto";
+import "common.proto";
+
+package rpc;
+
+service SocketService {
+    rpc SendMessage (Message) returns (Empty);
+    rpc SendNotification (Notification) returns (Empty);
+    rpc SendAction (Action) returns (Empty);
+}

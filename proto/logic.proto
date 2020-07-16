@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+option go_package = "rpc";
+
+import "msg.proto";
+import "common.proto";
+import "model.proto";
+import "ack.proto";
+
+package rpc;
+
+service LogicService {
+
+    rpc Register (RegisterReq) returns (RegisterResp);
+
+    rpc GetSessions (Int64) returns (stream Session);
+
+    rpc CreateSession (CreateSessionReq) returns (Session);
+
+    rpc JoinSession (JoinSessionReq) returns (Bool);
+
+    rpc QuitSession (QuitSessionReq) returns (Bool);
+
+    rpc RenameSession (RenameSessionReq) returns (Bool);
+
+    rpc HandleMessage (Message) returns (Empty);
+
+    rpc HandleACK (Ack) returns (Empty);
+
+    rpc GetMember (Int64) returns (stream User);
+
+    rpc SyncMessage (SyncMessageReq) returns (stream Message);
+
+    rpc WithdrawMessage (WithdrawMessageReq) returns (Bool);
+
+    rpc Offline (OfflineReq) returns (Empty);
+
+}

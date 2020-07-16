@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+option go_package="rpc";
+
+package rpc;
+
+message Action {
+	int64 userId = 1;
+	int64 deviceId = 2;
+	int64 requestId = 3;
+	int64 time = 4;
+	ActType type = 5;
+	string excute = 6;
+	bytes data = 7;
+}
+
+enum ActType {
+	ACT_UNKNOWN = 0; //未知
+	ACT_JOIN = 1; //加入群组
+	ACT_QUIT = 2; //退出群组
+	ACT_WITHDRAW = 3; //撤回
+	ACT_SYNC = 4; //同步消息
+	ACT_RENAME = 5; // 重命名Session
+}
+

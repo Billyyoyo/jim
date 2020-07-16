@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+option go_package="rpc";
+
+package rpc;
+
+message Input {
+	PackType type = 1; // 包的类型
+    int64 request_id = 2; // 请求id
+    bytes data = 3; // 数据 message
+}
+
+message Output {
+	PackType type = 1; // 包的类型
+    int64 request_id = 2; // 请求id
+    int32 code = 3; // 错误码
+    string info = 4; // 错误信息
+    bytes data = 5; // 数据
+}
+
+enum PackType {
+    PT_UNKNOWN = 0; // 未知
+    PT_AUTH = 1; // 设备验证授权
+    PT_MSG = 2; // 消息，包括in、out
+    PT_HEARTBEAT = 3; // 服务端心跳
+	PT_DETECT = 4; //客户端心跳
+	PT_ACTION = 5; // 用户操作如加入群组
+	PT_NOTIFICATION = 6; //系统通知
+	PT_ACK = 7; // 到达回执
+}

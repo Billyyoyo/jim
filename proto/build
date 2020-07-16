@@ -1,0 +1,9 @@
+protoc --go_out=plugins=grpc:../common/rpc msg.proto
+protoc --go_out=plugins=grpc:../common/rpc ack.proto
+protoc --go_out=plugins=grpc:../common/rpc notification.proto
+protoc --go_out=plugins=grpc:../common/rpc action.proto
+protoc --go_out=plugins=grpc:../common/rpc pack.proto
+protoc --go_out=plugins=grpc:../common/rpc model.proto
+protoc --go_out=plugins=grpc:../common/rpc common.proto
+protoc --go_out=plugins=grpc:../common/rpc socket.proto
+protoc --go_out=plugins=grpc:../common/rpc logic.proto

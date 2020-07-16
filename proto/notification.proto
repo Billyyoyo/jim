@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+option go_package="rpc";
+
+package rpc;
+
+message Notification {
+	int64 id = 1;
+	int64 time = 2;
+	string content = 3;
+}
