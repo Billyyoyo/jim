@@ -1,19 +1,25 @@
 package handler
 
 import (
+	"github.com/golang/protobuf/proto"
 	log "github.com/sirupsen/logrus"
 	"jim/common/rpc"
 	"jim/common/utils"
 	"jim/logic/cache"
 	"jim/logic/dao"
 	"jim/logic/model"
+	"strconv"
+	"strings"
 )
 
 // 当逻辑服务器收到来自连接服务器的用户消息传递
-// 3.发送客户端ack，并将ack保存到表中，记录发送数量
-// 4.从缓存中取得所有用户的在线连接，直接传递消息给在线连接
-// 5.不在线的用户无视 todo 思考
 func ReceiveMessage(sendId, sessionId, requestId int64, _type int8, content []byte) (err error) {
+	// 获取cache中该会话的发送消息序列号
+	sendNo, err := cache.GetSessionMsgSendNo(sessionId)
+	if err != nil {
+		log.Error("recieve message - get user send no fail: ", err.Error())
+		return
+	}
 	// 查询所有session中的用户
 	members, err := dao.GetMemberInSession(sessionId)
 	if err != nil {
@@ -32,6 +38,7 @@ func ReceiveMessage(sendId, sessionId, requestId int64, _type int8, content []by
 		message := &model.Message{
 			SenderId:   sendId,
 			SessionId:  sessionId,
+			SendNo:     sendNo,
 			Type:       _type,
 			Status:     model.MESSAGE_STATUS_NORMAL,
 			Sequence:   sequence,
@@ -63,6 +70,7 @@ func receiveMessageNext(member *model.User, message *model.Message) {
 		ack.SendCount++
 		msg := &rpc.Message{
 			Id:         message.Id,
+			SendNo:     message.SendNo,
 			SendId:     message.SenderId,
 			SessionId:  message.SessionId,
 			Time:       message.CreateTime,
@@ -70,6 +78,7 @@ func receiveMessageNext(member *model.User, message *model.Message) {
 			Type:       rpc.MsgType(message.Type),
 			SequenceNo: message.Sequence,
 			Content:    message.Body,
+			DeviceId:   conn.DeviceId,
 		}
 		SendMessage(conn.Server, msg)
 	}
@@ -91,12 +100,89 @@ func ReceiveAck(ackId int64, _type int8) (err error) {
 // 条件2.多条消息序列号，用,号连接
 // 条件3.消息序列号范围，startNo<endNo
 // 当服务端发现消息列表序列号不连续或不存在，以空消息填充（type=0）
-func SyncMessage(userId int64, conditions []string) (messages *[]model.Message, err error) {
-	
+func SyncMessage(userId int64, cond string) (continuity bool, messages *[]model.Message, err error) {
+	if no, err1 := strconv.ParseInt(cond, 10, 64); err1 == nil {
+		messages, err = dao.GetMessagesSeqAfter(userId, no)
+		if err != nil {
+			log.Error("sync message - load after fail: ", err.Error())
+			return
+		}
+		continuity = true
+	} else if strings.Contains(cond, ",") {
+		seqs := strings.Split(cond, ",")
+		nos := []int64{}
+		for _, seq := range seqs {
+			no, _ := strconv.ParseInt(seq, 10, 64)
+			nos = append(nos, no)
+		}
+		messages, err = dao.GetMessagesSeqIn(userId, nos)
+		if err != nil {
+			log.Error("sync message - load in fail: ", err.Error())
+			return
+		}
+	} else if strings.Contains(cond, "<") {
+		se := strings.Split(cond, "<")
+		start, _ := strconv.ParseInt(se[0], 10, 64)
+		end, _ := strconv.ParseInt(se[1], 10, 64)
+		messages, err = dao.GetMessagesSeqRange(userId, start, end)
+		if err != nil {
+			log.Error("sync message - load range fail: ", err.Error())
+			return
+		}
+		continuity = true
+	}
 	return
 }
 
-func WithdrawMessage(userId, messageId int64) (err error) {
-
+func WithdrawMessage(sessionId, userId, sendNo int64) (ret bool, err error) {
+	// 先保存消息状态为撤回
+	affect, err := dao.WithdrawMessage(userId, sendNo)
+	if err != nil {
+		log.Error("withdraw message - update message fail: ", err.Error())
+		ret = false
+		return
+	}
+	if affect == 0 {
+		log.Error("withdraw message - no message updated")
+		ret = false
+		return
+	}
+	withdrawMessageNext(sessionId, userId, sendNo)
 	return
+}
+
+func withdrawMessageNext(sessionId, userId, sendNo int64) {
+	// 找出所有该消息的接收者
+	receptorIds, err := dao.GetReceptorIdsInSendNo(sessionId, sendNo)
+	if err != nil {
+		log.Error("withdraw message - no receptor found: ", err.Error())
+		return
+	}
+	for _, receptorId := range *receptorIds {
+		wa := &rpc.WithdrawMessageAction{
+			MessageId: 0,
+			UserId:    userId,
+		}
+		bs, errr := proto.Marshal(wa)
+		if errr != nil {
+			log.Error("withdraw message - serial action content fail: ", err.Error())
+			continue
+		}
+		conns, errr := cache.ListUserConn(receptorId)
+		if errr != nil {
+			log.Error("withdraw message - get user online connection fail: ", err.Error())
+			continue
+		}
+		// 给所有接受者的device发送消息已撤回的动作
+		for _, conn := range *conns {
+			action := &rpc.Action{
+				UserId:   receptorId,
+				DeviceId: conn.DeviceId,
+				Time:     utils.GetCurrentMS(),
+				Type:     rpc.ActType_ACT_WITHDRAW,
+				Data:     bs,
+			}
+			SendAction(conn.Server, action)
+		}
+	}
 }

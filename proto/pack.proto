@@ -24,7 +24,7 @@ enum PackType {
     PT_MSG = 2; // 消息，包括in、out
     PT_HEARTBEAT = 3; // 服务端心跳
 	PT_DETECT = 4; //客户端心跳
-	PT_ACTION = 5; // 用户操作如加入群组
+	PT_ACTION = 5; // 用户操作
 	PT_NOTIFICATION = 6; //系统通知
 	PT_ACK = 7; // 到达回执
 }

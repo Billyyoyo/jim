@@ -6,6 +6,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/go-xorm/xorm"
 	log "github.com/sirupsen/logrus"
+	"jim/common/utils"
 	"jim/logic/core"
 	"jim/logic/model"
 )
@@ -67,6 +68,16 @@ func GetMemberInSession(sessionId int64) (users *[]model.User, err error) {
 		Join("INNER", "member", "user.id=member.user_id").
 		Where("member.session_id=?", sessionId).
 		Find(users)
+	return
+}
+
+func GetReceptorIdsInSendNo(sessionId, sendNo int64) (ids *[]int64, err error) {
+	ids= &[]int64{}
+	err= db.Table("message").
+		Where("session_id=?", sessionId).
+		And("send_no=?",sendNo).
+		Cols("receptor_id").
+		Find(ids)
 	return
 }
 
@@ -168,7 +179,14 @@ func CreateSession(ss *xorm.Session, session *model.Session) (err error) {
 
 func GetSession(sessionId int64) (session *model.Session, err error) {
 	session = &model.Session{}
-	_, err = db.Id(sessionId).Get(session)
+	exist, err := db.Id(sessionId).Get(session)
+	if err != nil {
+		return
+	}
+	if !exist {
+		err = errors.New("no session")
+		return
+	}
 	return
 }
 
@@ -194,11 +212,44 @@ func AddMessage(msg *model.Message) (err error) {
 	return
 }
 
-func GetMessageByUserAndSequence(receptorId int64, seq int64) (msgs *[]model.Message, err error) {
+func GetSessionIdByMessageId(msgId int64) (sessionId int64, err error) {
+	sessionId = 0
+	exist, err := db.Table(&model.Message{}).ID(msgId).Cols("session_id").Get(&sessionId)
+	if err != nil {
+		return
+	}
+	if !exist {
+		err = errors.New("no message id")
+		return
+	}
+	return
+}
+
+func GetMessagesSeqAfter(receptorId int64, seq int64) (msgs *[]model.Message, err error) {
 	msgs = &[]model.Message{}
 	err = db.Table(&model.Message{}).
 		Where("receptor_id=?", receptorId).
 		Where("sequence>?", seq).
+		OrderBy("sequence").
+		Find(msgs)
+	return
+}
+
+func GetMessagesSeqIn(receptorId int64, seqs []int64) (msgs *[]model.Message, err error) {
+	msgs = &[]model.Message{}
+	err = db.Table(&model.Message{}).
+		Where("receptor_id=?", receptorId).
+		In("sequence", seqs).
+		Find(msgs)
+	return
+}
+
+func GetMessagesSeqRange(receptorId int64, start int64, end int64) (msgs *[]model.Message, err error) {
+	msgs = &[]model.Message{}
+	err = db.Table(&model.Message{}).
+		Where("receptor_id=?", receptorId).
+		Where("sequence>?", start).
+		And("sequence<?", end).
 		Find(msgs)
 	return
 }
@@ -234,11 +285,16 @@ func RenameSession(sessionId int64, name string) (err error) {
 	return
 }
 
-func WithdrawMessage(msgId int64) (err error) {
+func WithdrawMessage(userId, sendNo int64) (affect int64, err error) {
 	msg := &model.Message{
 		Status: 2,
 	}
-	_, err = db.Id(msgId).Update(msg)
+	affect, err = db.
+		Where("sender_id=?", userId).
+		And("create_time>?", utils.GetCurrentMS()-60_000).
+		And("send_no=?", sendNo).
+		And("status=?", model.MESSAGE_STATUS_NORMAL).
+		Update(msg)
 	return
 }
 

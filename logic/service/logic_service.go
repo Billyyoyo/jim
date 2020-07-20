@@ -5,6 +5,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"jim/common/rpc"
 	"jim/logic/handler"
+	"jim/logic/model"
 )
 
 type LogicService struct {
@@ -136,6 +137,7 @@ func (s *LogicService) RenameSession(ctx context.Context, req *rpc.RenameSession
 	}
 	return
 }
+
 // 接收消息
 func (s *LogicService) HandleMessage(ctx context.Context, req *rpc.Message) (empty *rpc.Empty, err error) {
 	_type := int8(req.Type)
@@ -169,25 +171,38 @@ func (s *LogicService) GetMember(req *rpc.Int64, stream rpc.LogicService_GetMemb
 }
 
 // 同步消息
-//1. 不传seq时按服务端自己保存的最后序列号往后查询
-//2. seq为int64  获取单条
-//3. seq有，用in获取
-//4. seq有>，按范围获取
 func (s *LogicService) SyncMessage(req *rpc.SyncMessageReq, stream rpc.LogicService_SyncMessageServer) (err error) {
-	msgs, err := handler.SyncMessage(req.UserId, req.SeqRanges)
+	continuity, msgs, err := handler.SyncMessage(req.UserId, req.Condition)
 	if err != nil {
 		return
 	}
+	var prevSeq int64
 	for _, msg := range *msgs {
+		// 检查消息是否连续有序
+		if continuity && prevSeq > 0 && msg.Sequence-prevSeq > 1 {
+			for i := prevSeq + 1; i < msg.Sequence; i++ {
+				m := &rpc.Message{SequenceNo: i}
+				errr := stream.Send(m)
+				if errr != nil {
+					log.Error("stream sync empty message:", errr.Error())
+				}
+			}
+		}
 		message := &rpc.Message{
 			Id:        msg.Id,
+			SendNo:    msg.SendNo,
 			SendId:    msg.SenderId,
 			SessionId: msg.SessionId,
 			Time:      msg.CreateTime,
 			Status:    rpc.MsgStatus(msg.Status),
 			Type:      rpc.MsgType(msg.Type),
-			Content:   msg.Body,
 		}
+		if msg.Status == model.MESSAGE_STATUS_NORMAL {
+			message.Content = msg.Body
+		} else {
+			message.Content = nil
+		}
+		prevSeq = msg.Sequence
 		errr := stream.Send(message)
 		if errr != nil {
 			log.Error("stream sync message:", errr.Error())
@@ -198,16 +213,8 @@ func (s *LogicService) SyncMessage(req *rpc.SyncMessageReq, stream rpc.LogicServ
 
 // 撤回
 func (s *LogicService) WithdrawMessage(ctx context.Context, req *rpc.WithdrawMessageReq) (ret *rpc.Bool, err error) {
-	err = handler.WithdrawMessage(req.UserId, req.MessageId)
-	if err != nil {
-		ret = &rpc.Bool{
-			Value: false,
-		}
-	} else {
-		ret = &rpc.Bool{
-			Value: true,
-		}
-	}
+	ok, err := handler.WithdrawMessage(req.SessionId, req.SenderId, req.SendNo)
+	ret = &rpc.Bool{Value: ok}
 	return
 }
 

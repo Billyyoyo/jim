@@ -44,8 +44,8 @@ func TestRenameSessionHandler(t *testing.T) {
 }
 
 func TestRegisterHandle(t *testing.T) {
-	serialNo := "20139fcd-25fe-42e0-9457-49356018beb8" //uuid.New().String()
-	deviceId, sequence, err := handler.Register(1, "123123123", "localhost:42401", "localhost:5000", serialNo)
+	serialNo := "20139fcd-25fe-42e0-9457-49356018beb9" //uuid.New().String()
+	deviceId, sequence, err := handler.Register(2, "123123123", "localhost:42402", "localhost:5000", serialNo)
 	if err != nil {
 		println(err.Error())
 		return
@@ -89,14 +89,42 @@ func TestGetMembersHandle(t *testing.T) {
 }
 
 func TestReceiveMessageHandle(t *testing.T) {
-	message := rpc.Words{Text: "Good morning!",}
+	message := rpc.Words{Text: "Good morning",}
 	body, err := proto.Marshal(&message)
 	if err != nil {
 		println(err.Error())
 		return
 	}
 	requestId := rand.Int63n(1000000)
-	err = handler.ReceiveMessage(3, 9, requestId, model.MESSAGE_TYPE_WORDS, body)
+	err = handler.ReceiveMessage(2, 9, requestId, model.MESSAGE_TYPE_WORDS, body)
+	if err != nil {
+		println(err.Error())
+	}
+}
+
+func TestWithDrawMessageHandle(t *testing.T) {
+	ok, err := handler.WithdrawMessage(9, 2, 4)
+	if err != nil {
+		println(err.Error())
+		return
+	}
+	println(ok)
+}
+
+func TestSyncMessageHandle(t *testing.T) {
+	continuity, msgs, err := handler.SyncMessage(1, "1,4")
+	if err != nil {
+		println(err.Error())
+		return
+	}
+	if continuity {
+		println("需要检查连续性")
+	}
+	print(msgs)
+}
+
+func TestReceiveAck(t *testing.T) {
+	err := handler.ReceiveAck(7, model.ACK_TYPE_MESSAGE)
 	if err != nil {
 		println(err.Error())
 	}

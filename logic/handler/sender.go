@@ -45,15 +45,15 @@ func SendAction(connServer string, action *rpc.Action) {
 }
 
 func SendMessage(connServer string, message *rpc.Message) {
-	fmt.Println("server:", connServer, "send action", message.Type.String(), "to", message.SessionId)
 	cli := clients[connServer]
+	fmt.Println("server:", connServer, "send message", message.Type.String(), "to", message.DeviceId)
 	if cli != nil {
 		cli.SendMessage(context.Background(), message)
 	}
 }
 
 func SendNotification(connServer string, notification *rpc.Notification) {
-	fmt.Println("server:", connServer, "send action", notification.Content, "to", notification.ReceptorId)
+	fmt.Println("server:", connServer, "send notification", notification.Content, "to", notification.ReceptorId)
 	cli := clients[connServer]
 	if cli != nil {
 		cli.SendNotification(context.Background(), notification)

@@ -120,7 +120,7 @@ func TestAddMessage(t *testing.T) {
 }
 
 func TestGetMessageList(t *testing.T) {
-	msgs, err := dao.GetMessageByUserAndSequence(2, 1)
+	msgs, err := dao.GetMessagesSeqAfter(2, 1)
 	if err != nil {
 		log.Error(err.Error())
 		return
@@ -151,10 +151,12 @@ func TestRenameSession(t *testing.T) {
 }
 
 func TestWithdrawMessage(t *testing.T) {
-	err := dao.WithdrawMessage(1)
+	affect, err := dao.WithdrawMessage(1, 1)
 	if err != nil {
 		log.Error(err.Error())
+		return
 	}
+	println("update ", affect, " rows")
 }
 
 func TestAccumulateSendCount(t *testing.T) {

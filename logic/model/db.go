@@ -2,21 +2,21 @@ package model
 
 const (
 	SESSION_TYPE_PERSON = 1
-	SESSION_TYPE_GROUP = 2
+	SESSION_TYPE_GROUP  = 2
 
-	MESSAGE_TYPE_WORDS = 1
-	MESSAGE_TYPE_EMOJI = 2
-	MESSAGE_TYPE_VOICE = 3
-	MESSAGE_TYPE_IMAGE = 4
-	MESSAGE_TYPE_FILE = 5
-	MESSAGE_TYPE_GEO = 6
+	MESSAGE_TYPE_WORDS  = 1
+	MESSAGE_TYPE_EMOJI  = 2
+	MESSAGE_TYPE_VOICE  = 3
+	MESSAGE_TYPE_IMAGE  = 4
+	MESSAGE_TYPE_FILE   = 5
+	MESSAGE_TYPE_GEO    = 6
 	MESSAGE_TYPE_CUSTOM = 7
 
-	MESSAGE_STATUS_NORMAL = 1
+	MESSAGE_STATUS_NORMAL   = 1
 	MESSAGE_STATUS_WITHDRAW = 2
 
 	ACK_TYPE_NOTIFICATION = 1
-	ACK_TYPE_MESSAGE = 2
+	ACK_TYPE_MESSAGE      = 2
 )
 
 type Message struct {
@@ -26,6 +26,7 @@ type Message struct {
 	Type       int8   `xorm:"type"`
 	Status     int8   `xorm:"status"`
 	Sequence   int64  `xorm:"sequence"`
+	SendNo     int64  `xorm:"send_no"`
 	ReceptorId int64  `xorm:"receptor_id"`
 	Body       []byte `xorm:"body"`
 	CreateTime int64  `xorm:"create_time"`

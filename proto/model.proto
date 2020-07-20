@@ -58,8 +58,9 @@ message User {
 }
 
 message WithdrawMessageReq {
-    int64 userId = 1;
-    int64 messageId = 2;
+    int64 senderId = 1;
+    int64 sendNo = 2;
+    int64 sessionId = 3;
 }
 
 message RenameSessionReq {
@@ -70,11 +71,11 @@ message RenameSessionReq {
 
 //1. 不传seq时按服务端自己保存的最后序列号往后查询
 //2. seq为int64  获取单条
-//3. seq有，用in获取
-//4. seq有>，按范围获取
+//3. seq有,用in获取
+//4. seq有>按范围获取
 message SyncMessageReq {
     int64 userId = 1;
-    repeated string seqRanges = 2;
+    string condition = 2;
 }
 
 message OfflineReq {

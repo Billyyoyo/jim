@@ -33,6 +33,17 @@ func GetUserMsgSequence(userId int64) (no int64, err error) {
 	return
 }
 
+func GetSessionMsgSendNo(sessionId int64) (no int64, err error) {
+	key := fmt.Sprintf("%s_session_sno_%d", core.AppConfig.Redis.Prefix, sessionId)
+	cmd := client.Incr(context.Background(), key)
+	if cmd.Err() != nil {
+		err = cmd.Err()
+		return
+	}
+	no = cmd.Val()
+	return
+}
+
 func HasUserConn(userId int64, deviceId int64) (exist bool, err error) {
 	key := fmt.Sprintf("%s_user_conn_%d", core.AppConfig.Redis.Prefix, userId)
 	cmd := client.HExists(context.Background(), key, strconv.FormatInt(deviceId, 10))
