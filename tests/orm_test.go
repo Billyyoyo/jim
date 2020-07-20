@@ -43,7 +43,7 @@ func TestAddMember(t *testing.T) {
 		UserId:     1,
 		CreateTime: utils.GetCurrentMS(),
 	}
-	err := dao.AddMember(member)
+	err := dao.AddMemberV2(dao.DB(), member)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -51,7 +51,7 @@ func TestAddMember(t *testing.T) {
 }
 
 func TestGetDevice(t *testing.T) {
-	device, err := dao.GetDevice(1, "123adskf23ek2jrh")
+	_, device, err := dao.GetDevice(1, "123adskf23ek2jrh")
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -81,7 +81,7 @@ func TestCreateSession(t *testing.T) {
 		Owner:      1,
 		CreateTime: utils.GetCurrentMS(),
 	}
-	dao.CreateSession(session)
+	dao.CreateSession(dao.DB(), session)
 	print(session)
 }
 
@@ -110,8 +110,7 @@ func TestAddMessage(t *testing.T) {
 		SessionId:  1,
 		Type:       2,
 		Status:     1,
-		DeviceId:   1,
-		Sequence:    3,
+		Sequence:   3,
 		ReceptorId: 2,
 		Body:       bs,
 		CreateTime: utils.GetCurrentMS(),
@@ -151,9 +150,23 @@ func TestRenameSession(t *testing.T) {
 	}
 }
 
-func TestWithdrawMessage(t *testing.T){
-	err:= dao.WithdrawMessage(1)
+func TestWithdrawMessage(t *testing.T) {
+	err := dao.WithdrawMessage(1)
 	if err != nil {
 		log.Error(err.Error())
+	}
+}
+
+func TestAccumulateSendCount(t *testing.T) {
+	err := dao.AccumulateAckSendCount(1)
+	if err != nil {
+		println(err.Error())
+	}
+}
+
+func TestAccumulateArriveCount(t *testing.T) {
+	err := dao.AccumulateAckArriveCount(1)
+	if err != nil {
+		println(err.Error())
 	}
 }

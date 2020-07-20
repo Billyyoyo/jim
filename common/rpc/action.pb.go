@@ -29,6 +29,7 @@ const (
 	ActType_ACT_WITHDRAW ActType = 3
 	ActType_ACT_SYNC     ActType = 4
 	ActType_ACT_RENAME   ActType = 5
+	ActType_ACT_CREATE   ActType = 6
 )
 
 var ActType_name = map[int32]string{
@@ -38,6 +39,7 @@ var ActType_name = map[int32]string{
 	3: "ACT_WITHDRAW",
 	4: "ACT_SYNC",
 	5: "ACT_RENAME",
+	6: "ACT_CREATE",
 }
 
 var ActType_value = map[string]int32{
@@ -47,6 +49,7 @@ var ActType_value = map[string]int32{
 	"ACT_WITHDRAW": 3,
 	"ACT_SYNC":     4,
 	"ACT_RENAME":   5,
+	"ACT_CREATE":   6,
 }
 
 func (x ActType) String() string {
@@ -63,8 +66,7 @@ type Action struct {
 	RequestId            int64    `protobuf:"varint,3,opt,name=requestId,proto3" json:"requestId,omitempty"`
 	Time                 int64    `protobuf:"varint,4,opt,name=time,proto3" json:"time,omitempty"`
 	Type                 ActType  `protobuf:"varint,5,opt,name=type,proto3,enum=rpc.ActType" json:"type,omitempty"`
-	Excute               string   `protobuf:"bytes,6,opt,name=excute,proto3" json:"excute,omitempty"`
-	Data                 []byte   `protobuf:"bytes,7,opt,name=data,proto3" json:"data,omitempty"`
+	Data                 []byte   `protobuf:"bytes,6,opt,name=data,proto3" json:"data,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -130,13 +132,6 @@ func (m *Action) GetType() ActType {
 	return ActType_ACT_UNKNOWN
 }
 
-func (m *Action) GetExcute() string {
-	if m != nil {
-		return m.Excute
-	}
-	return ""
-}
-
 func (m *Action) GetData() []byte {
 	if m != nil {
 		return m.Data
@@ -144,30 +139,311 @@ func (m *Action) GetData() []byte {
 	return nil
 }
 
+type CreateSessionAction struct {
+	SessionId            int64    `protobuf:"varint,1,opt,name=sessionId,proto3" json:"sessionId,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *CreateSessionAction) Reset()         { *m = CreateSessionAction{} }
+func (m *CreateSessionAction) String() string { return proto.CompactTextString(m) }
+func (*CreateSessionAction) ProtoMessage()    {}
+func (*CreateSessionAction) Descriptor() ([]byte, []int) {
+	return fileDescriptor_59885c909ad4dfd3, []int{1}
+}
+
+func (m *CreateSessionAction) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_CreateSessionAction.Unmarshal(m, b)
+}
+func (m *CreateSessionAction) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_CreateSessionAction.Marshal(b, m, deterministic)
+}
+func (m *CreateSessionAction) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CreateSessionAction.Merge(m, src)
+}
+func (m *CreateSessionAction) XXX_Size() int {
+	return xxx_messageInfo_CreateSessionAction.Size(m)
+}
+func (m *CreateSessionAction) XXX_DiscardUnknown() {
+	xxx_messageInfo_CreateSessionAction.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_CreateSessionAction proto.InternalMessageInfo
+
+func (m *CreateSessionAction) GetSessionId() int64 {
+	if m != nil {
+		return m.SessionId
+	}
+	return 0
+}
+
+type JoinSessionAction struct {
+	SessionId            int64    `protobuf:"varint,1,opt,name=sessionId,proto3" json:"sessionId,omitempty"`
+	User                 *User    `protobuf:"bytes,2,opt,name=user,proto3" json:"user,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *JoinSessionAction) Reset()         { *m = JoinSessionAction{} }
+func (m *JoinSessionAction) String() string { return proto.CompactTextString(m) }
+func (*JoinSessionAction) ProtoMessage()    {}
+func (*JoinSessionAction) Descriptor() ([]byte, []int) {
+	return fileDescriptor_59885c909ad4dfd3, []int{2}
+}
+
+func (m *JoinSessionAction) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_JoinSessionAction.Unmarshal(m, b)
+}
+func (m *JoinSessionAction) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_JoinSessionAction.Marshal(b, m, deterministic)
+}
+func (m *JoinSessionAction) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_JoinSessionAction.Merge(m, src)
+}
+func (m *JoinSessionAction) XXX_Size() int {
+	return xxx_messageInfo_JoinSessionAction.Size(m)
+}
+func (m *JoinSessionAction) XXX_DiscardUnknown() {
+	xxx_messageInfo_JoinSessionAction.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_JoinSessionAction proto.InternalMessageInfo
+
+func (m *JoinSessionAction) GetSessionId() int64 {
+	if m != nil {
+		return m.SessionId
+	}
+	return 0
+}
+
+func (m *JoinSessionAction) GetUser() *User {
+	if m != nil {
+		return m.User
+	}
+	return nil
+}
+
+type QuitSessionAction struct {
+	SessionId            int64    `protobuf:"varint,1,opt,name=sessionId,proto3" json:"sessionId,omitempty"`
+	UserId               int64    `protobuf:"varint,2,opt,name=userId,proto3" json:"userId,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *QuitSessionAction) Reset()         { *m = QuitSessionAction{} }
+func (m *QuitSessionAction) String() string { return proto.CompactTextString(m) }
+func (*QuitSessionAction) ProtoMessage()    {}
+func (*QuitSessionAction) Descriptor() ([]byte, []int) {
+	return fileDescriptor_59885c909ad4dfd3, []int{3}
+}
+
+func (m *QuitSessionAction) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_QuitSessionAction.Unmarshal(m, b)
+}
+func (m *QuitSessionAction) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_QuitSessionAction.Marshal(b, m, deterministic)
+}
+func (m *QuitSessionAction) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QuitSessionAction.Merge(m, src)
+}
+func (m *QuitSessionAction) XXX_Size() int {
+	return xxx_messageInfo_QuitSessionAction.Size(m)
+}
+func (m *QuitSessionAction) XXX_DiscardUnknown() {
+	xxx_messageInfo_QuitSessionAction.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QuitSessionAction proto.InternalMessageInfo
+
+func (m *QuitSessionAction) GetSessionId() int64 {
+	if m != nil {
+		return m.SessionId
+	}
+	return 0
+}
+
+func (m *QuitSessionAction) GetUserId() int64 {
+	if m != nil {
+		return m.UserId
+	}
+	return 0
+}
+
+type WithdrawMessageAction struct {
+	UserId               int64    `protobuf:"varint,1,opt,name=userId,proto3" json:"userId,omitempty"`
+	MessageId            int64    `protobuf:"varint,2,opt,name=messageId,proto3" json:"messageId,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *WithdrawMessageAction) Reset()         { *m = WithdrawMessageAction{} }
+func (m *WithdrawMessageAction) String() string { return proto.CompactTextString(m) }
+func (*WithdrawMessageAction) ProtoMessage()    {}
+func (*WithdrawMessageAction) Descriptor() ([]byte, []int) {
+	return fileDescriptor_59885c909ad4dfd3, []int{4}
+}
+
+func (m *WithdrawMessageAction) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_WithdrawMessageAction.Unmarshal(m, b)
+}
+func (m *WithdrawMessageAction) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_WithdrawMessageAction.Marshal(b, m, deterministic)
+}
+func (m *WithdrawMessageAction) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_WithdrawMessageAction.Merge(m, src)
+}
+func (m *WithdrawMessageAction) XXX_Size() int {
+	return xxx_messageInfo_WithdrawMessageAction.Size(m)
+}
+func (m *WithdrawMessageAction) XXX_DiscardUnknown() {
+	xxx_messageInfo_WithdrawMessageAction.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_WithdrawMessageAction proto.InternalMessageInfo
+
+func (m *WithdrawMessageAction) GetUserId() int64 {
+	if m != nil {
+		return m.UserId
+	}
+	return 0
+}
+
+func (m *WithdrawMessageAction) GetMessageId() int64 {
+	if m != nil {
+		return m.MessageId
+	}
+	return 0
+}
+
+type SyncMessageAction struct {
+	Messages             []*Message `protobuf:"bytes,1,rep,name=messages,proto3" json:"messages,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}   `json:"-"`
+	XXX_unrecognized     []byte     `json:"-"`
+	XXX_sizecache        int32      `json:"-"`
+}
+
+func (m *SyncMessageAction) Reset()         { *m = SyncMessageAction{} }
+func (m *SyncMessageAction) String() string { return proto.CompactTextString(m) }
+func (*SyncMessageAction) ProtoMessage()    {}
+func (*SyncMessageAction) Descriptor() ([]byte, []int) {
+	return fileDescriptor_59885c909ad4dfd3, []int{5}
+}
+
+func (m *SyncMessageAction) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_SyncMessageAction.Unmarshal(m, b)
+}
+func (m *SyncMessageAction) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_SyncMessageAction.Marshal(b, m, deterministic)
+}
+func (m *SyncMessageAction) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SyncMessageAction.Merge(m, src)
+}
+func (m *SyncMessageAction) XXX_Size() int {
+	return xxx_messageInfo_SyncMessageAction.Size(m)
+}
+func (m *SyncMessageAction) XXX_DiscardUnknown() {
+	xxx_messageInfo_SyncMessageAction.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_SyncMessageAction proto.InternalMessageInfo
+
+func (m *SyncMessageAction) GetMessages() []*Message {
+	if m != nil {
+		return m.Messages
+	}
+	return nil
+}
+
+type RenameSessionAction struct {
+	SessionId            int64    `protobuf:"varint,1,opt,name=sessionId,proto3" json:"sessionId,omitempty"`
+	Name                 string   `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *RenameSessionAction) Reset()         { *m = RenameSessionAction{} }
+func (m *RenameSessionAction) String() string { return proto.CompactTextString(m) }
+func (*RenameSessionAction) ProtoMessage()    {}
+func (*RenameSessionAction) Descriptor() ([]byte, []int) {
+	return fileDescriptor_59885c909ad4dfd3, []int{6}
+}
+
+func (m *RenameSessionAction) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_RenameSessionAction.Unmarshal(m, b)
+}
+func (m *RenameSessionAction) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_RenameSessionAction.Marshal(b, m, deterministic)
+}
+func (m *RenameSessionAction) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_RenameSessionAction.Merge(m, src)
+}
+func (m *RenameSessionAction) XXX_Size() int {
+	return xxx_messageInfo_RenameSessionAction.Size(m)
+}
+func (m *RenameSessionAction) XXX_DiscardUnknown() {
+	xxx_messageInfo_RenameSessionAction.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_RenameSessionAction proto.InternalMessageInfo
+
+func (m *RenameSessionAction) GetSessionId() int64 {
+	if m != nil {
+		return m.SessionId
+	}
+	return 0
+}
+
+func (m *RenameSessionAction) GetName() string {
+	if m != nil {
+		return m.Name
+	}
+	return ""
+}
+
 func init() {
 	proto.RegisterEnum("rpc.ActType", ActType_name, ActType_value)
 	proto.RegisterType((*Action)(nil), "rpc.Action")
+	proto.RegisterType((*CreateSessionAction)(nil), "rpc.CreateSessionAction")
+	proto.RegisterType((*JoinSessionAction)(nil), "rpc.JoinSessionAction")
+	proto.RegisterType((*QuitSessionAction)(nil), "rpc.QuitSessionAction")
+	proto.RegisterType((*WithdrawMessageAction)(nil), "rpc.WithdrawMessageAction")
+	proto.RegisterType((*SyncMessageAction)(nil), "rpc.SyncMessageAction")
+	proto.RegisterType((*RenameSessionAction)(nil), "rpc.RenameSessionAction")
 }
 
 func init() { proto.RegisterFile("action.proto", fileDescriptor_59885c909ad4dfd3) }
 
 var fileDescriptor_59885c909ad4dfd3 = []byte{
-	// 263 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x44, 0x90, 0x4f, 0x4b, 0xc3, 0x30,
-	0x18, 0xc6, 0xcd, 0xfa, 0x67, 0xdb, 0x6b, 0x99, 0xe1, 0x3d, 0x48, 0x10, 0x0f, 0xc5, 0x53, 0xf1,
-	0xd0, 0x83, 0x7e, 0x82, 0x3a, 0x07, 0x46, 0x31, 0xc3, 0xd8, 0x51, 0xf4, 0x22, 0x35, 0x8d, 0xd0,
-	0x83, 0xb6, 0x66, 0xa9, 0xb8, 0xef, 0xe6, 0x87, 0x93, 0x84, 0x4e, 0x6f, 0xcf, 0xef, 0xf9, 0x91,
-	0xf0, 0xf2, 0x40, 0x52, 0x2b, 0xdb, 0x76, 0x1f, 0x79, 0x6f, 0x3a, 0xdb, 0x61, 0x60, 0x7a, 0x75,
-	0xf6, 0x43, 0x20, 0x2e, 0x7c, 0x8b, 0xc7, 0x10, 0x0f, 0x5b, 0x6d, 0x78, 0xc3, 0x48, 0x4a, 0xb2,
-	0x40, 0x8e, 0x84, 0x27, 0x30, 0x6b, 0xf4, 0x57, 0xab, 0x34, 0x6f, 0xd8, 0xc4, 0x9b, 0x3f, 0xc6,
-	0x53, 0x98, 0x1b, 0xfd, 0x39, 0xe8, 0xad, 0xe5, 0x0d, 0x0b, 0xbc, 0xfc, 0x2f, 0x10, 0x21, 0xb4,
-	0xed, 0xbb, 0x66, 0xa1, 0x17, 0x3e, 0x63, 0x0a, 0xa1, 0xdd, 0xf5, 0x9a, 0x45, 0x29, 0xc9, 0x16,
-	0x17, 0x49, 0x6e, 0x7a, 0x95, 0x17, 0xca, 0x96, 0xbb, 0x5e, 0x4b, 0x6f, 0xdc, 0x1d, 0xfa, 0x5b,
-	0x0d, 0x56, 0xb3, 0x38, 0x25, 0xd9, 0x5c, 0x8e, 0xe4, 0x7e, 0x6b, 0x6a, 0x5b, 0xb3, 0x69, 0x4a,
-	0xb2, 0x44, 0xfa, 0x7c, 0xfe, 0x06, 0xd3, 0xf1, 0x31, 0x1e, 0xc1, 0x61, 0xb1, 0x2c, 0x5f, 0x36,
-	0xe2, 0x4e, 0xac, 0x2b, 0x41, 0x0f, 0x30, 0x81, 0x99, 0x2b, 0x6e, 0xd7, 0x5c, 0x50, 0xb2, 0xa7,
-	0x87, 0x0d, 0x2f, 0xe9, 0x04, 0x29, 0x24, 0x8e, 0x2a, 0x5e, 0xde, 0x5c, 0xcb, 0xa2, 0xa2, 0xc1,
-	0xde, 0x3f, 0x3e, 0x89, 0x25, 0x0d, 0x71, 0x01, 0xe0, 0x48, 0xae, 0x44, 0x71, 0xbf, 0xa2, 0xd1,
-	0x55, 0xf4, 0xec, 0xd6, 0x7a, 0x8d, 0xfd, 0x72, 0x97, 0xbf, 0x01, 0x00, 0x00, 0xff, 0xff, 0x4f,
-	0x2d, 0x48, 0x78, 0x49, 0x01, 0x00, 0x00,
+	// 413 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x94, 0x52, 0x4d, 0x8f, 0xd3, 0x30,
+	0x10, 0x25, 0x4d, 0x1a, 0x9a, 0x69, 0xb4, 0xb8, 0x5e, 0x81, 0xa2, 0xaa, 0x48, 0x51, 0x4e, 0x11,
+	0x87, 0x1e, 0x76, 0xcf, 0x1c, 0x42, 0xa9, 0x20, 0x8b, 0x9a, 0x65, 0xdd, 0x54, 0x15, 0x5c, 0x50,
+	0x48, 0x46, 0x4b, 0x24, 0xf2, 0x81, 0xed, 0x16, 0xf5, 0xff, 0xf0, 0x43, 0x91, 0xdd, 0xb4, 0x81,
+	0xd3, 0xaa, 0xb7, 0x79, 0xef, 0xcd, 0x8c, 0x9e, 0xdf, 0x18, 0xdc, 0x2c, 0x97, 0x65, 0x53, 0xcf,
+	0x5b, 0xde, 0xc8, 0x86, 0x9a, 0xbc, 0xcd, 0xa7, 0xe3, 0xaa, 0x29, 0xf0, 0xe7, 0x91, 0x99, 0x3a,
+	0x95, 0x78, 0x3c, 0x96, 0xc1, 0x1f, 0x03, 0xec, 0x48, 0x77, 0xd3, 0x57, 0x60, 0xef, 0x04, 0xf2,
+	0xb8, 0xf0, 0x0c, 0xdf, 0x08, 0x4d, 0xd6, 0x21, 0x3a, 0x85, 0x51, 0x81, 0xfb, 0x32, 0xc7, 0xb8,
+	0xf0, 0x06, 0x5a, 0x39, 0x63, 0x3a, 0x03, 0x87, 0xe3, 0xaf, 0x1d, 0x0a, 0x19, 0x17, 0x9e, 0xa9,
+	0xc5, 0x9e, 0xa0, 0x14, 0x2c, 0x59, 0x56, 0xe8, 0x59, 0x5a, 0xd0, 0x35, 0xf5, 0xc1, 0x92, 0x87,
+	0x16, 0xbd, 0xa1, 0x6f, 0x84, 0x57, 0x37, 0xee, 0x9c, 0xb7, 0xf9, 0x3c, 0xca, 0x65, 0x7a, 0x68,
+	0x91, 0x69, 0x45, 0x4d, 0x15, 0x99, 0xcc, 0x3c, 0xdb, 0x37, 0x42, 0x97, 0xe9, 0x3a, 0xb8, 0x85,
+	0xeb, 0x05, 0xc7, 0x4c, 0xe2, 0x1a, 0x85, 0x28, 0x9b, 0xba, 0xb3, 0x3c, 0x03, 0x47, 0x1c, 0x89,
+	0xb3, 0xeb, 0x9e, 0x08, 0x3e, 0xc3, 0xe4, 0xae, 0x29, 0xeb, 0x0b, 0x46, 0xe8, 0x6b, 0xb0, 0xd4,
+	0xab, 0xf5, 0x3b, 0xc7, 0x37, 0x8e, 0x76, 0xb7, 0x11, 0xc8, 0x99, 0xa6, 0x83, 0x18, 0x26, 0x0f,
+	0xbb, 0x52, 0x5e, 0xb2, 0xb1, 0x4f, 0x75, 0xf0, 0x6f, 0xaa, 0xc1, 0x0a, 0x5e, 0x6e, 0x4b, 0xf9,
+	0xa3, 0xe0, 0xd9, 0xef, 0x15, 0x0a, 0x91, 0x3d, 0xe2, 0x13, 0x67, 0x98, 0x81, 0x53, 0x1d, 0x1b,
+	0xcf, 0xbb, 0x7a, 0x22, 0x78, 0x0b, 0x93, 0xf5, 0xa1, 0xce, 0xff, 0x5f, 0x15, 0xc2, 0xa8, 0xeb,
+	0x10, 0x9e, 0xe1, 0x9b, 0xe1, 0xb8, 0xcb, 0xbb, 0xeb, 0x62, 0x67, 0x35, 0xf8, 0x00, 0xd7, 0x0c,
+	0xeb, 0xac, 0xba, 0x24, 0x5f, 0x75, 0x28, 0x35, 0xa2, 0xcd, 0x38, 0x4c, 0xd7, 0x6f, 0xf6, 0xf0,
+	0xbc, 0xbb, 0x26, 0x7d, 0x01, 0xe3, 0x68, 0x91, 0x7e, 0xdb, 0x24, 0x9f, 0x92, 0xfb, 0x6d, 0x42,
+	0x9e, 0x51, 0x17, 0x46, 0x8a, 0xb8, 0xbb, 0x8f, 0x13, 0x62, 0x9c, 0xd0, 0xc3, 0x26, 0x4e, 0xc9,
+	0x80, 0x12, 0x70, 0x15, 0xda, 0xc6, 0xe9, 0xc7, 0xf7, 0x2c, 0xda, 0x12, 0xf3, 0xa4, 0xaf, 0xbf,
+	0x24, 0x0b, 0x62, 0xd1, 0x2b, 0x00, 0x85, 0xd8, 0x32, 0x89, 0x56, 0x4b, 0x32, 0x3c, 0xe1, 0x05,
+	0x5b, 0x46, 0xe9, 0x92, 0xd8, 0xef, 0x86, 0x5f, 0xd5, 0x37, 0xff, 0x6e, 0xeb, 0x5f, 0x7d, 0xfb,
+	0x37, 0x00, 0x00, 0xff, 0xff, 0x55, 0x03, 0x4c, 0x26, 0x02, 0x03, 0x00, 0x00,
 }

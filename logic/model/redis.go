@@ -4,7 +4,6 @@ import "encoding/json"
 
 type UserConn struct {
 	Server   string
-	UserId   int64
 	Addr     string
 	DeviceId int64
 }

@@ -1,12 +1,30 @@
 package model
 
+const (
+	SESSION_TYPE_PERSON = 1
+	SESSION_TYPE_GROUP = 2
+
+	MESSAGE_TYPE_WORDS = 1
+	MESSAGE_TYPE_EMOJI = 2
+	MESSAGE_TYPE_VOICE = 3
+	MESSAGE_TYPE_IMAGE = 4
+	MESSAGE_TYPE_FILE = 5
+	MESSAGE_TYPE_GEO = 6
+	MESSAGE_TYPE_CUSTOM = 7
+
+	MESSAGE_STATUS_NORMAL = 1
+	MESSAGE_STATUS_WITHDRAW = 2
+
+	ACK_TYPE_NOTIFICATION = 1
+	ACK_TYPE_MESSAGE = 2
+)
+
 type Message struct {
 	Id         int64  `xorm:"'id' pk autoincr"`
 	SenderId   int64  `xorm:"sender_id"`
 	SessionId  int64  `xorm:"session_id"`
 	Type       int8   `xorm:"type"`
 	Status     int8   `xorm:"status"`
-	DeviceId   int64  `xorm:"device_id"`
 	Sequence   int64  `xorm:"sequence"`
 	ReceptorId int64  `xorm:"receptor_id"`
 	Body       []byte `xorm:"body"`

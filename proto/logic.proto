@@ -15,7 +15,9 @@ service LogicService {
 
     rpc GetSessions (Int64) returns (stream Session);
 
-    rpc CreateSession (CreateSessionReq) returns (Session);
+    rpc GetSession (Int64) returns (SessionResp);
+
+    rpc CreateSession (CreateSessionReq) returns (SessionResp);
 
     rpc JoinSession (JoinSessionReq) returns (Bool);
 

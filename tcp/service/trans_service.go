@@ -19,3 +19,7 @@ func (s *TransService) SendNotification(ctx context.Context, req *rpc.Notificati
 func (s *TransService) SendAction(ctx context.Context, req *rpc.Action) (empty *rpc.Empty, err error) {
 	return
 }
+
+func (s *TransService) SendKickoff(ctx context.Context, addr *rpc.Text) (empty *rpc.Empty, err error){
+	return
+}

@@ -1,25 +1,55 @@
 syntax = "proto3";
 
-option go_package="rpc";
+option go_package = "rpc";
+
+import "model.proto";
+import "msg.proto";
 
 package rpc;
 
 message Action {
-	int64 userId = 1;
-	int64 deviceId = 2;
-	int64 requestId = 3;
-	int64 time = 4;
-	ActType type = 5;
-	string excute = 6;
-	bytes data = 7;
+    int64 userId = 1;
+    int64 deviceId = 2;
+    int64 requestId = 3;
+    int64 time = 4;
+    ActType type = 5;
+    bytes data = 6;
 }
 
 enum ActType {
-	ACT_UNKNOWN = 0; //未知
-	ACT_JOIN = 1; //加入群组
-	ACT_QUIT = 2; //退出群组
-	ACT_WITHDRAW = 3; //撤回
-	ACT_SYNC = 4; //同步消息
-	ACT_RENAME = 5; // 重命名Session
+    ACT_UNKNOWN = 0; //未知
+    ACT_JOIN = 1; //加入群组
+    ACT_QUIT = 2; //退出群组
+    ACT_WITHDRAW = 3; //撤回
+    ACT_SYNC = 4; //同步消息
+    ACT_RENAME = 5; // 重命名Session
+    ACT_CREATE = 6; // 创建群组
 }
 
+message CreateSessionAction {
+    int64 sessionId = 1;
+}
+
+message JoinSessionAction {
+    int64 sessionId = 1;
+    User user = 2;
+}
+
+message QuitSessionAction {
+    int64 sessionId = 1;
+    int64 userId = 2;
+}
+
+message WithdrawMessageAction {
+    int64 userId = 1;
+    int64 messageId = 2;
+}
+
+message SyncMessageAction {
+    repeated Message messages = 1;
+}
+
+message RenameSessionAction {
+    int64 sessionId = 1;
+    string name = 2;
+}

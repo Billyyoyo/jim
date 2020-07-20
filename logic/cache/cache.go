@@ -7,6 +7,7 @@ import (
 	"jim/logic/core"
 	_ "jim/logic/core"
 	"jim/logic/model"
+	"strconv"
 )
 
 var (
@@ -32,21 +33,27 @@ func GetUserMsgSequence(userId int64) (no int64, err error) {
 	return
 }
 
-func GetUserConn(userId int64, addr string, userConn *model.UserConn) error {
+func HasUserConn(userId int64, deviceId int64) (exist bool, err error) {
 	key := fmt.Sprintf("%s_user_conn_%d", core.AppConfig.Redis.Prefix, userId)
-	cmd := client.HGet(context.Background(), key, addr)
+	cmd := client.HExists(context.Background(), key, strconv.FormatInt(deviceId, 10))
+	return cmd.Result()
+}
+
+func GetUserConn(userId, deviceId int64, userConn *model.UserConn) error {
+	key := fmt.Sprintf("%s_user_conn_%d", core.AppConfig.Redis.Prefix, userId)
+	cmd := client.HGet(context.Background(), key, strconv.FormatInt(deviceId, 10))
 	return cmd.Scan(userConn)
 }
 
 func SaveUserConn(userId int64, userConn *model.UserConn) error {
 	key := fmt.Sprintf("%s_user_conn_%d", core.AppConfig.Redis.Prefix, userId)
-	cmd := client.HSet(context.Background(), key, userConn.Addr, userConn)
+	cmd := client.HSet(context.Background(), key, userConn.DeviceId, userConn)
 	return cmd.Err()
 }
 
-func RemoveUserConn(userId int64, addr string) error {
+func RemoveUserConn(userId, deviceId int64) error {
 	key := fmt.Sprintf("%s_user_conn_%d", core.AppConfig.Redis.Prefix, userId)
-	cmd := client.HDel(context.Background(), key, addr)
+	cmd := client.HDel(context.Background(), key, strconv.FormatInt(deviceId, 10))
 	return cmd.Err()
 }
 

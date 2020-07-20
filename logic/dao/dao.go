@@ -70,6 +70,14 @@ func GetMemberInSession(sessionId int64) (users *[]model.User, err error) {
 	return
 }
 
+func IsUserInSession(userId, sessionId int64) (ret bool, err error) {
+	ret, err = db.Table("member").
+		Where("user_id=?", userId).
+		And("session_id=?", sessionId).
+		Exist()
+	return
+}
+
 func AddMember(member *model.Member) (err error) {
 	exist, err := db.Table("member").Where("user_id=?", member.UserId).And("session_id=?", member.SessionId).Exist()
 	if err != nil {
@@ -86,9 +94,25 @@ func AddMember(member *model.Member) (err error) {
 	return
 }
 
-func GetDevice(userId int64, serial string) (device *model.Device, err error) {
+func AddMemberV2(ss *xorm.Session, member *model.Member) (err error) {
+	exist, err := ss.Table("member").Where("user_id=?", member.UserId).And("session_id=?", member.SessionId).Exist()
+	if err != nil {
+		return
+	}
+	if exist {
+		err = errors.New("already is member")
+		return
+	}
+	_, err = ss.Insert(member)
+	if err != nil {
+		return
+	}
+	return
+}
+
+func GetDeviceById(id int64) (device *model.Device, err error) {
 	device = &model.Device{}
-	ok, err := db.Where("user_id=?", userId).And("serial=?", serial).Get(device)
+	ok, err := db.Id(id).Get(device)
 	if err != nil {
 		return
 	}
@@ -96,6 +120,12 @@ func GetDevice(userId int64, serial string) (device *model.Device, err error) {
 		err = errors.New("no device")
 		return
 	}
+	return
+}
+
+func GetDevice(userId int64, serial string) (ok bool, device *model.Device, err error) {
+	device = &model.Device{}
+	ok, err = db.Where("user_id=?", userId).And("serial_no=?", serial).Get(device)
 	return
 }
 
@@ -115,13 +145,47 @@ func SaveDevice(device *model.Device) (err error) {
 	return
 }
 
-func CreateSession(session *model.Session) (err error) {
-	_, err = db.Insert(session)
+func SaveDeviceV2(ss *xorm.Session, device *model.Device) (err error) {
+	if device.Id > 0 {
+		_, err = ss.Update(device)
+		if err != nil {
+			device.Id = 0
+			return
+		}
+	} else {
+		_, err = ss.Insert(device)
+		if err != nil {
+			return
+		}
+	}
+	return
+}
+
+func CreateSession(ss *xorm.Session, session *model.Session) (err error) {
+	_, err = ss.Insert(session)
+	return
+}
+
+func GetSession(sessionId int64) (session *model.Session, err error) {
+	session = &model.Session{}
+	_, err = db.Id(sessionId).Get(session)
 	return
 }
 
 func AddAck(ack *model.Ack) (err error) {
 	_, err = db.Insert(ack)
+	return
+}
+
+func AccumulateAckSendCount(messageId int64) (err error) {
+	sql := "update ack set send_count=send_count+1 where msg_id=?"
+	_, err = db.Exec(sql, messageId)
+	return
+}
+
+func AccumulateAckArriveCount(messageId int64) (err error) {
+	sql := "update ack set arrive_count=arrive_count+1 where msg_id=?"
+	_, err = db.Exec(sql, messageId)
 	return
 }
 
@@ -178,6 +242,6 @@ func WithdrawMessage(msgId int64) (err error) {
 	return
 }
 
-func DB() *xorm.Engine {
-	return db
+func DB() *xorm.Session {
+	return db.NewSession()
 }

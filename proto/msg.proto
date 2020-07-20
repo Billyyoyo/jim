@@ -9,24 +9,16 @@ message Message {
     int64 sendId = 2;
     int64 sessionId = 3;
     int64 time = 4;
-    int64 deviceId = 5;
-    int64 requestId = 6;
-    MsgStatus status = 7;
-    MsgType type = 8;
-    oneof content {
-        Words text = 9; // 文本
-        Emoji emoji = 10; // 表情
-        Voice voice = 11; // 语音消息
-        Image image = 12; // 图片
-        File file = 13; // 文件
-        Geo geo = 14; // 地理位置
-        Custom custom = 15; // 自定义消息类型数据
-    }
+    int64 requestId = 5;
+    MsgStatus status = 6;
+    MsgType type = 7;
+    bytes content = 8;
+    int64 sequenceNo = 9;
 }
 
 enum MsgType {
     MT_UNKNOWN = 0; // 未知
-    MT_TEXT = 1; // 文本
+    MT_WORDS = 1; // 文本
     MT_EMOJI = 2; // 表情
     MT_VOICE = 3; // 语音消息
     MT_IMAGE = 4; // 图片

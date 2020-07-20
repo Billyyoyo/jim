@@ -1,5 +1,6 @@
 server:
   mode: debug
+  host: localhost
   port: 4000
   logfile: ./log/logic-
 

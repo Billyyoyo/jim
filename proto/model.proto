@@ -13,9 +13,8 @@ message RegisterReq {
 }
 
 message RegisterResp {
-    bool ret = 1;
-    int64 deviceId = 2;
-    int64 lastSequence = 3;
+    int64 deviceId = 1;
+    int64 lastSequence = 2;
 }
 
 message Session {
@@ -35,6 +34,12 @@ message CreateSessionReq {
     string name = 1;
     int64 creater = 2;
     repeated int64 userIds = 3;
+    SessionType type = 4;
+}
+
+message SessionResp {
+    Session session = 1;
+    repeated User members = 2;
 }
 
 message JoinSessionReq {

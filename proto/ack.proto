@@ -13,5 +13,4 @@ enum AckType {
 	AT_UNKNOWN = 0;
 	AT_NOTIFICATION = 1;
 	AT_MESSAGE = 2;
-	AT_ACTION = 3;
 }

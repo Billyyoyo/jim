@@ -1,7 +1,6 @@
 package tests
 
 import (
-	"encoding/json"
 	"fmt"
 	log "github.com/sirupsen/logrus"
 	"jim/logic/cache"
@@ -20,24 +19,16 @@ func TestSequence(t *testing.T) {
 
 func TestSaveUserConn(t *testing.T) {
 	conn1 := &model.UserConn{
-		Server:   "localhost:8080",
-		Addr:     "127.0.0.1:43331",
-		DeviceId: 1,
-		Sequence:  3,
+		Server:   "localhost:5000",
+		Addr:     "127.0.0.1:43334",
+		DeviceId: 4,
 	}
-	cache.SaveUserConn(1, conn1)
-	conn2 := &model.UserConn{
-		Server:   "localhost:8082",
-		Addr:     "127.0.0.1:43332",
-		DeviceId: 1,
-		Sequence:  2,
-	}
-	cache.SaveUserConn(1, conn2)
+	cache.SaveUserConn(4, conn1)
 }
 
 func TestGetUserConn(t *testing.T) {
 	conn := &model.UserConn{}
-	err := cache.GetUserConn(1, "127.0.0.1:33331", conn)
+	err := cache.GetUserConn(1, 1, conn)
 	if err != nil {
 		log.Error(err.Error())
 		return
@@ -54,11 +45,4 @@ func TestGetAllUserConn(t *testing.T) {
 	print(conns)
 }
 
-func print(data interface{}) {
-	bs, err := json.MarshalIndent(data, "", "\t")
-	if err != nil {
-		log.Error(err.Error())
-		return
-	}
-	fmt.Println(string(bs))
-}
+

@@ -14,6 +14,7 @@ import (
 type appConfig struct {
 	Server struct {
 		Mode    string `yaml:"mode"`
+		Host 	string `yaml:"host"`
 		Port    int    `yaml: "port"`
 		LogFile string `yaml: "logfile"`
 	}

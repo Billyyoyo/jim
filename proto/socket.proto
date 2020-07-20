@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option go_package="rpc";
+option go_package = "rpc";
 
 import "msg.proto";
 import "action.proto";
@@ -13,4 +13,5 @@ service SocketService {
     rpc SendMessage (Message) returns (Empty);
     rpc SendNotification (Notification) returns (Empty);
     rpc SendAction (Action) returns (Empty);
+    rpc SendKickoff (Text) returns (Empty);
 }

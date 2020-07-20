@@ -8,4 +8,5 @@ message Notification {
 	int64 id = 1;
 	int64 time = 2;
 	string content = 3;
+	int64 receptorId = 4;
 }

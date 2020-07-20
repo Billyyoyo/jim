@@ -27,18 +27,19 @@ const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
 func init() { proto.RegisterFile("socket.proto", fileDescriptor_6b39cc5e3943e1cc) }
 
 var fileDescriptor_6b39cc5e3943e1cc = []byte{
-	// 169 bytes of a gzipped FileDescriptorProto
+	// 189 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0xe2, 0x29, 0xce, 0x4f, 0xce,
 	0x4e, 0x2d, 0xd1, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0x62, 0x2e, 0x2a, 0x48, 0x96, 0xe2, 0xcc,
 	0x2d, 0x4e, 0x87, 0xf0, 0xa5, 0x78, 0x12, 0x93, 0x4b, 0x32, 0xf3, 0xf3, 0xa0, 0x3c, 0xa1, 0xbc,
 	0xfc, 0x92, 0xcc, 0xb4, 0xcc, 0xe4, 0x44, 0x24, 0x31, 0x9e, 0xe4, 0xfc, 0xdc, 0x5c, 0x18, 0xcf,
-	0x68, 0x12, 0x23, 0x17, 0x6f, 0x30, 0xd8, 0xc0, 0xe0, 0xd4, 0xa2, 0xb2, 0xcc, 0xe4, 0x54, 0x21,
+	0x68, 0x07, 0x23, 0x17, 0x6f, 0x30, 0xd8, 0xc0, 0xe0, 0xd4, 0xa2, 0xb2, 0xcc, 0xe4, 0x54, 0x21,
 	0x75, 0x2e, 0xee, 0xe0, 0xd4, 0xbc, 0x14, 0xdf, 0xd4, 0xe2, 0xe2, 0xc4, 0xf4, 0x54, 0x21, 0x1e,
 	0xbd, 0xa2, 0x82, 0x64, 0x3d, 0x28, 0x4f, 0x8a, 0x0b, 0xcc, 0x73, 0xcd, 0x2d, 0x28, 0xa9, 0x14,
 	0x32, 0xe4, 0x12, 0x00, 0x29, 0xf4, 0x43, 0xb2, 0x42, 0x48, 0x10, 0x2c, 0x8f, 0x2c, 0x84, 0xa2,
-	0x45, 0x95, 0x8b, 0x0b, 0xa4, 0xc5, 0x11, 0xec, 0x46, 0x21, 0x6e, 0xb0, 0x0c, 0x84, 0x83, 0xac,
-	0xcc, 0x89, 0x35, 0x0a, 0xe4, 0xad, 0x24, 0x36, 0xb0, 0x13, 0x8d, 0x01, 0x01, 0x00, 0x00, 0xff,
-	0xff, 0xc5, 0x39, 0xc8, 0xf6, 0xf2, 0x00, 0x00, 0x00,
+	0x45, 0x95, 0x8b, 0x0b, 0xa4, 0xc5, 0x11, 0xec, 0x46, 0x21, 0x6e, 0xb0, 0x0c, 0x84, 0x83, 0xa2,
+	0x4c, 0x05, 0xe2, 0x04, 0xef, 0xcc, 0xe4, 0xec, 0xfc, 0xb4, 0x34, 0x21, 0x4e, 0xb0, 0x54, 0x48,
+	0x6a, 0x45, 0x09, 0xb2, 0x2a, 0x27, 0xd6, 0x28, 0x90, 0xe7, 0x93, 0xd8, 0xc0, 0x1e, 0x31, 0x06,
+	0x04, 0x00, 0x00, 0xff, 0xff, 0x99, 0x10, 0xd2, 0x3e, 0x18, 0x01, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -56,6 +57,7 @@ type SocketServiceClient interface {
 	SendMessage(ctx context.Context, in *Message, opts ...grpc.CallOption) (*Empty, error)
 	SendNotification(ctx context.Context, in *Notification, opts ...grpc.CallOption) (*Empty, error)
 	SendAction(ctx context.Context, in *Action, opts ...grpc.CallOption) (*Empty, error)
+	SendKickoff(ctx context.Context, in *Text, opts ...grpc.CallOption) (*Empty, error)
 }
 
 type socketServiceClient struct {
@@ -93,11 +95,21 @@ func (c *socketServiceClient) SendAction(ctx context.Context, in *Action, opts .
 	return out, nil
 }
 
+func (c *socketServiceClient) SendKickoff(ctx context.Context, in *Text, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, "/rpc.SocketService/SendKickoff", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // SocketServiceServer is the server API for SocketService service.
 type SocketServiceServer interface {
 	SendMessage(context.Context, *Message) (*Empty, error)
 	SendNotification(context.Context, *Notification) (*Empty, error)
 	SendAction(context.Context, *Action) (*Empty, error)
+	SendKickoff(context.Context, *Text) (*Empty, error)
 }
 
 // UnimplementedSocketServiceServer can be embedded to have forward compatible implementations.
@@ -112,6 +124,9 @@ func (*UnimplementedSocketServiceServer) SendNotification(ctx context.Context, r
 }
 func (*UnimplementedSocketServiceServer) SendAction(ctx context.Context, req *Action) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SendAction not implemented")
+}
+func (*UnimplementedSocketServiceServer) SendKickoff(ctx context.Context, req *Text) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SendKickoff not implemented")
 }
 
 func RegisterSocketServiceServer(s *grpc.Server, srv SocketServiceServer) {
@@ -172,6 +187,24 @@ func _SocketService_SendAction_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _SocketService_SendKickoff_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Text)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SocketServiceServer).SendKickoff(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/rpc.SocketService/SendKickoff",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SocketServiceServer).SendKickoff(ctx, req.(*Text))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _SocketService_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "rpc.SocketService",
 	HandlerType: (*SocketServiceServer)(nil),
@@ -187,6 +220,10 @@ var _SocketService_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SendAction",
 			Handler:    _SocketService_SendAction_Handler,
+		},
+		{
+			MethodName: "SendKickoff",
+			Handler:    _SocketService_SendKickoff_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
