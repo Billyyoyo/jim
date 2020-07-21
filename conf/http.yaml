@@ -1,0 +1,5 @@
+server:
+  mode: debug
+  host: localhost
+  port: 4001
+  logfile: ./log/http-
