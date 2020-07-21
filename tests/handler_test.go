@@ -12,17 +12,17 @@ import (
 func TestCreateSessionHandler(t *testing.T) {
 	session, members, err := handler.CreateSession(1, "Test Create Session", model.SESSION_TYPE_GROUP, []int64{1, 2, 3})
 	if err != nil {
-		println(err.Error())
+		printl(err.Error())
 		return
 	}
-	print(session)
-	print(members)
+	printj(session)
+	printj(members)
 }
 
 func TestJoinSessionHandler(t *testing.T) {
 	err := handler.JoinSession(4, 9)
 	if err != nil {
-		println(err.Error())
+		printl(err.Error())
 		return
 	}
 }
@@ -30,7 +30,7 @@ func TestJoinSessionHandler(t *testing.T) {
 func TestQuitSessionHandler(t *testing.T) {
 	err := handler.QuitSession(4, 9)
 	if err != nil {
-		println(err.Error())
+		printl(err.Error())
 		return
 	}
 }
@@ -38,7 +38,7 @@ func TestQuitSessionHandler(t *testing.T) {
 func TestRenameSessionHandler(t *testing.T) {
 	err := handler.RenameSession(3, 9, "Hello World")
 	if err != nil {
-		println(err.Error())
+		printl(err.Error())
 		return
 	}
 }
@@ -47,85 +47,85 @@ func TestRegisterHandle(t *testing.T) {
 	serialNo := "20139fcd-25fe-42e0-9457-49356018beb9" //uuid.New().String()
 	deviceId, sequence, err := handler.Register(2, "123123123", "localhost:42402", "localhost:5000", serialNo)
 	if err != nil {
-		println(err.Error())
+		printl(err.Error())
 		return
 	}
-	println("register success: ", deviceId, "  /  ", sequence)
+	printl("register success: ", deviceId, "  /  ", sequence)
 }
 
 func TestOfflineHandle(t *testing.T) {
-	err := handler.Offline(1, 16, 3)
+	err := handler.Offline(2, 17, 0)
 	if err != nil {
-		println(err.Error())
+		printl(err.Error())
 	}
 }
 
 func TestGetSessionsHandle(t *testing.T) {
 	sessions, err := handler.GetSessions(1)
 	if err != nil {
-		println(err.Error())
+		printl(err.Error())
 		return
 	}
-	print(sessions)
+	printj(sessions)
 }
 
 func TestGetSessionHandle(t *testing.T) {
 	session, members, err := handler.GetSession(9)
 	if err != nil {
-		println(err.Error())
+		printl(err.Error())
 		return
 	}
-	print(session)
-	print(members)
+	printj(session)
+	printj(members)
 }
 
 func TestGetMembersHandle(t *testing.T) {
 	members, err := handler.GetMembers(9)
 	if err != nil {
-		println(err.Error())
+		printl(err.Error())
 		return
 	}
-	print(members)
+	printj(members)
 }
 
 func TestReceiveMessageHandle(t *testing.T) {
-	message := rpc.Words{Text: "Good morning",}
+	message := rpc.Words{Text: "Good morning123",}
 	body, err := proto.Marshal(&message)
 	if err != nil {
-		println(err.Error())
+		printl(err.Error())
 		return
 	}
 	requestId := rand.Int63n(1000000)
 	err = handler.ReceiveMessage(2, 9, requestId, model.MESSAGE_TYPE_WORDS, body)
 	if err != nil {
-		println(err.Error())
+		printl(err.Error())
 	}
 }
 
 func TestWithDrawMessageHandle(t *testing.T) {
-	ok, err := handler.WithdrawMessage(9, 2, 4)
+	ok, err := handler.WithdrawMessage(9, 2, 5)
 	if err != nil {
-		println(err.Error())
+		printl(err.Error())
 		return
 	}
-	println(ok)
+	printl(ok)
 }
 
 func TestSyncMessageHandle(t *testing.T) {
 	continuity, msgs, err := handler.SyncMessage(1, "1,4")
 	if err != nil {
-		println(err.Error())
+		printl(err.Error())
 		return
 	}
 	if continuity {
-		println("需要检查连续性")
+		printl("需要检查连续性")
 	}
-	print(msgs)
+	printj(msgs)
 }
 
 func TestReceiveAck(t *testing.T) {
 	err := handler.ReceiveAck(7, model.ACK_TYPE_MESSAGE)
 	if err != nil {
-		println(err.Error())
+		printl(err.Error())
 	}
 }

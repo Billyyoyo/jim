@@ -53,7 +53,7 @@ func SendMessage(connServer string, message *rpc.Message) {
 }
 
 func SendNotification(connServer string, notification *rpc.Notification) {
-	fmt.Println("server:", connServer, "send notification", notification.Content, "to", notification.ReceptorId)
+	fmt.Println("server:", connServer, "send notification", notification.Content, "to", notification.DeviceId)
 	cli := clients[connServer]
 	if cli != nil {
 		cli.SendNotification(context.Background(), notification)

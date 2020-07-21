@@ -25,11 +25,11 @@ service LogicService {
 
     rpc RenameSession (RenameSessionReq) returns (Bool);
 
-    rpc HandleMessage (Message) returns (Empty);
+    rpc ReceiveMessage (Message) returns (Empty);
 
-    rpc HandleACK (Ack) returns (Empty);
+    rpc ReceiveACK (Ack) returns (Empty);
 
-    rpc GetMember (Int64) returns (stream User);
+    rpc GetMembers (Int64) returns (stream User);
 
     rpc SyncMessage (SyncMessageReq) returns (stream Message);
 

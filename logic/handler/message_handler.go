@@ -147,6 +147,7 @@ func WithdrawMessage(sessionId, userId, sendNo int64) (ret bool, err error) {
 		ret = false
 		return
 	}
+	ret = true
 	withdrawMessageNext(sessionId, userId, sendNo)
 	return
 }

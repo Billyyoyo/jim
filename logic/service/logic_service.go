@@ -139,7 +139,7 @@ func (s *LogicService) RenameSession(ctx context.Context, req *rpc.RenameSession
 }
 
 // 接收消息
-func (s *LogicService) HandleMessage(ctx context.Context, req *rpc.Message) (empty *rpc.Empty, err error) {
+func (s *LogicService) ReceiveMessage(ctx context.Context, req *rpc.Message) (empty *rpc.Empty, err error) {
 	_type := int8(req.Type)
 	err = handler.ReceiveMessage(req.SendId, req.SessionId, req.RequestId, _type, req.Content)
 	empty = &rpc.Empty{}
@@ -147,7 +147,7 @@ func (s *LogicService) HandleMessage(ctx context.Context, req *rpc.Message) (emp
 }
 
 // 发送给客户端的消息的ack处理  记录送达数量
-func (s *LogicService) HandleACK(ctx context.Context, req *rpc.Ack) (empty *rpc.Empty, err error) {
+func (s *LogicService) ReceiveACK(ctx context.Context, req *rpc.Ack) (empty *rpc.Empty, err error) {
 	_type := int8(req.Type)
 	err = handler.ReceiveAck(req.ObjId, _type)
 	empty = &rpc.Empty{}
@@ -155,7 +155,7 @@ func (s *LogicService) HandleACK(ctx context.Context, req *rpc.Ack) (empty *rpc.
 }
 
 // 获取会话中的所有成员
-func (s *LogicService) GetMember(req *rpc.Int64, stream rpc.LogicService_GetMemberServer) (err error) {
+func (s *LogicService) GetMembers(req *rpc.Int64, stream rpc.LogicService_GetMembersServer) (err error) {
 	members, err := handler.GetMembers(req.Value)
 	for _, member := range *members {
 		user := &rpc.User{
@@ -189,13 +189,14 @@ func (s *LogicService) SyncMessage(req *rpc.SyncMessageReq, stream rpc.LogicServ
 			}
 		}
 		message := &rpc.Message{
-			Id:        msg.Id,
-			SendNo:    msg.SendNo,
-			SendId:    msg.SenderId,
-			SessionId: msg.SessionId,
-			Time:      msg.CreateTime,
-			Status:    rpc.MsgStatus(msg.Status),
-			Type:      rpc.MsgType(msg.Type),
+			Id:         msg.Id,
+			SendId:     msg.SenderId,
+			SessionId:  msg.SessionId,
+			Time:       msg.CreateTime,
+			Status:     rpc.MsgStatus(msg.Status),
+			Type:       rpc.MsgType(msg.Type),
+			SequenceNo: msg.Sequence,
+			SendNo:     msg.SendNo,
 		}
 		if msg.Status == model.MESSAGE_STATUS_NORMAL {
 			message.Content = msg.Body

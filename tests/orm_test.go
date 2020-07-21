@@ -16,7 +16,7 @@ func TestGetUser(t *testing.T) {
 		fmt.Println(err.Error())
 		return
 	}
-	print(user)
+	printj(user)
 }
 
 func TestGetSessions(t *testing.T) {
@@ -25,7 +25,7 @@ func TestGetSessions(t *testing.T) {
 		fmt.Println(err.Error())
 		return
 	}
-	print(sessions)
+	printj(sessions)
 }
 
 func TestGetMembers(t *testing.T) {
@@ -34,7 +34,7 @@ func TestGetMembers(t *testing.T) {
 		fmt.Println(err.Error())
 		return
 	}
-	print(members)
+	printj(members)
 }
 
 func TestAddMember(t *testing.T) {
@@ -56,7 +56,7 @@ func TestGetDevice(t *testing.T) {
 		fmt.Println(err)
 		return
 	}
-	print(device)
+	printj(device)
 }
 
 func TestRecordDevice(t *testing.T) {
@@ -82,7 +82,7 @@ func TestCreateSession(t *testing.T) {
 		CreateTime: utils.GetCurrentMS(),
 	}
 	dao.CreateSession(dao.DB(), session)
-	print(session)
+	printj(session)
 }
 
 func TestAddAck(t *testing.T) {
@@ -92,7 +92,7 @@ func TestAddAck(t *testing.T) {
 		ArriveCount: 0,
 	}
 	dao.AddAck(ack)
-	print(ack)
+	printj(ack)
 }
 
 func TestAddMessage(t *testing.T) {
@@ -116,7 +116,7 @@ func TestAddMessage(t *testing.T) {
 		CreateTime: utils.GetCurrentMS(),
 	}
 	dao.AddMessage(msg)
-	print(msg)
+	printj(msg)
 }
 
 func TestGetMessageList(t *testing.T) {
@@ -132,7 +132,7 @@ func TestGetMessageList(t *testing.T) {
 			log.Error(err.Error())
 			continue
 		}
-		print(body)
+		printj(body)
 	}
 }
 
@@ -156,19 +156,19 @@ func TestWithdrawMessage(t *testing.T) {
 		log.Error(err.Error())
 		return
 	}
-	println("update ", affect, " rows")
+	printl("update ", affect, " rows")
 }
 
 func TestAccumulateSendCount(t *testing.T) {
 	err := dao.AccumulateAckSendCount(1)
 	if err != nil {
-		println(err.Error())
+		printl(err.Error())
 	}
 }
 
 func TestAccumulateArriveCount(t *testing.T) {
 	err := dao.AccumulateAckArriveCount(1)
 	if err != nil {
-		println(err.Error())
+		printl(err.Error())
 	}
 }

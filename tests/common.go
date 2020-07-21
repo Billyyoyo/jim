@@ -3,10 +3,11 @@ package tests
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/golang/protobuf/proto"
 	log "github.com/sirupsen/logrus"
 )
 
-func print(data interface{}) {
+func printj(data interface{}) {
 	bs, err := json.MarshalIndent(data, "", "\t")
 	if err != nil {
 		log.Error(err.Error())
@@ -15,6 +16,15 @@ func print(data interface{}) {
 	fmt.Println(string(bs))
 }
 
-func println(args ...interface{}) {
+func printl(args ...interface{}) {
 	fmt.Println(args...)
+}
+
+func printp(data proto.Message) {
+	bs, err := proto.Marshal(data)
+	if err != nil {
+		log.Error(err.Error())
+		return
+	}
+	fmt.Println("{", string(bs), "}")
 }

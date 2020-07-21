@@ -33,7 +33,7 @@ func TestGetUserConn(t *testing.T) {
 		log.Error(err.Error())
 		return
 	}
-	print(conn)
+	printj(conn)
 }
 
 func TestGetAllUserConn(t *testing.T) {
@@ -42,7 +42,7 @@ func TestGetAllUserConn(t *testing.T) {
 		log.Error(err.Error())
 		return
 	}
-	print(conns)
+	printj(conns)
 }
 
 
