@@ -5,6 +5,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"jim/common/rpc"
+	"jim/common/tool"
 	"jim/logic/core"
 	_ "jim/logic/core"
 	"jim/logic/service"
@@ -12,6 +13,7 @@ import (
 )
 
 func main() {
+	defer tool.ReleaseGoPool()
 	log.Info("=====register server on name resolver=====")
 	//todo
 	log.Info("=====register server on message queue=====")
@@ -23,6 +25,7 @@ func main() {
 		panic(err)
 		return
 	}
+	// todo 需要注册到服务发现中心zk
 	rpcSever := grpc.NewServer()
 	rpc.RegisterLogicServiceServer(rpcSever, &service.LogicService{})
 	log.Info("start listen ", addr)

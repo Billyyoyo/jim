@@ -8,6 +8,13 @@ import (
 	"testing"
 )
 
+func TestToken(t *testing.T) {
+	err := cache.SaveUserToken(1, "111111")
+	if err != nil {
+		printl(err.Error())
+	}
+}
+
 func TestSequence(t *testing.T) {
 	seq, err := cache.GetUserMsgSequence(1)
 	if err != nil {
@@ -18,7 +25,7 @@ func TestSequence(t *testing.T) {
 }
 
 func TestSaveUserConn(t *testing.T) {
-	conn1 := &model.UserConn{
+	conn1 := &model.UserState{
 		Server:   "localhost:5000",
 		Addr:     "127.0.0.1:43334",
 		DeviceId: 4,
@@ -27,7 +34,7 @@ func TestSaveUserConn(t *testing.T) {
 }
 
 func TestGetUserConn(t *testing.T) {
-	conn := &model.UserConn{}
+	conn := &model.UserState{}
 	err := cache.GetUserConn(1, 1, conn)
 	if err != nil {
 		log.Error(err.Error())
@@ -44,5 +51,3 @@ func TestGetAllUserConn(t *testing.T) {
 	}
 	printj(conns)
 }
-
-

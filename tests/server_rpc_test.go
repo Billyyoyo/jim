@@ -4,25 +4,11 @@ import (
 	"context"
 	"fmt"
 	"github.com/golang/protobuf/proto"
-	"google.golang.org/grpc"
 	"io"
 	"jim/common/rpc"
 	"jim/common/utils"
 	"testing"
 )
-
-var (
-	cli rpc.LogicServiceClient
-)
-
-func init() {
-	conn, err := grpc.Dial("localhost:4000", grpc.WithInsecure())
-	if err != nil {
-		panic("grpc start up error: " + err.Error())
-		return
-	}
-	cli = rpc.NewLogicServiceClient(conn)
-}
 
 func TestRpcCreateSession(t *testing.T) {
 	req := &rpc.CreateSessionReq{
@@ -68,7 +54,7 @@ func TestRpcQuitSession(t *testing.T) {
 func TestRpcRegister(t *testing.T) {
 	req := &rpc.RegisterReq{
 		UserId:   1,
-		Token:    "12312rf23",
+		Token:    "749f6530e13a40af92cf17db2c5e2130",
 		Addr:     "localhost:23224",
 		Server:   "localhost:5000",
 		SerialNo: "20139fcd-25fe-42e0-9457-49356018beb8",
@@ -209,7 +195,6 @@ func TestRpcReceiveAck(t *testing.T) {
 	}
 }
 
-
 func TestRpcSyncMessage(t *testing.T) {
 	req := &rpc.SyncMessageReq{
 		UserId:    3,
@@ -221,9 +206,9 @@ func TestRpcSyncMessage(t *testing.T) {
 		return
 	}
 	for {
-		message, errr:=stream.Recv()
-		if errr!=nil{
-			if errr == io.EOF{
+		message, errr := stream.Recv()
+		if errr != nil {
+			if errr == io.EOF {
 				break
 			} else {
 				printl(errr.Error())
@@ -232,4 +217,17 @@ func TestRpcSyncMessage(t *testing.T) {
 		}
 		printj(message)
 	}
+}
+
+func TestAuthorization(t *testing.T) {
+	req := &rpc.AuthReq{
+		Uid:  1,
+		Code: "abc",
+	}
+	resp, err := cli.Authorization(context.Background(), req)
+	if err!=nil{
+		printl(err.Error())
+		return
+	}
+	printj(resp)
 }

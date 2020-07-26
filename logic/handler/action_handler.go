@@ -4,6 +4,7 @@ import (
 	"github.com/golang/protobuf/proto"
 	log "github.com/sirupsen/logrus"
 	"jim/common/rpc"
+	"jim/common/tool"
 	"jim/common/utils"
 	"jim/logic/cache"
 	"jim/logic/dao"
@@ -72,7 +73,9 @@ func CreateSession(ownerId int64, name string, _type int8, userIds []int64) (ses
 	}
 	ss.Commit()
 	// 通知成员会话创建成功
-	createSessionNext(session, members)
+	tool.AsyncRun(func() {
+		createSessionNext(session, members)
+	})
 	return
 }
 
@@ -122,7 +125,9 @@ func JoinSession(userId, sessionId int64) (err error) {
 		log.Error("join session - add member fail:", err.Error())
 		return
 	}
-	joinSessionNext(sessionId, user)
+	tool.AsyncRun(func() {
+		joinSessionNext(sessionId, user)
+	})
 	return
 }
 
@@ -176,7 +181,9 @@ func QuitSession(userId, sessionId int64) (err error) {
 		log.Error("quit session - del member fail:", err.Error())
 		return
 	}
-	quitSessionNext(sessionId, user)
+	tool.AsyncRun(func() {
+		quitSessionNext(sessionId, user)
+	})
 	return
 }
 
@@ -232,7 +239,9 @@ func RenameSession(userId, sessionId int64, name string) (err error) {
 		log.Error("rename session - rename fail:", err.Error())
 		return
 	}
-	renameSessionNext(sessionId, name)
+	tool.AsyncRun(func() {
+		renameSessionNext(sessionId, name)
+	})
 	return
 }
 

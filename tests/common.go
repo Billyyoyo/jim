@@ -5,7 +5,22 @@ import (
 	"fmt"
 	"github.com/golang/protobuf/proto"
 	log "github.com/sirupsen/logrus"
+	"google.golang.org/grpc"
+	"jim/common/rpc"
 )
+
+var (
+	cli rpc.LogicServiceClient
+)
+
+func init() {
+	conn, err := grpc.Dial("localhost:4000", grpc.WithInsecure())
+	if err != nil {
+		panic("grpc start up error: " + err.Error())
+		return
+	}
+	cli = rpc.NewLogicServiceClient(conn)
+}
 
 func printj(data interface{}) {
 	bs, err := json.MarshalIndent(data, "", "\t")

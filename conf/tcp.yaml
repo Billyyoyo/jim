@@ -1,0 +1,12 @@
+socket:
+  mode: debug
+  host: localhost
+  port: 4002
+  logfile: ./log/tcp-
+  poolSize: 512
+  tick: 10
+  timeout: 30
+
+rpc:
+  host: localhost
+  port: 4003

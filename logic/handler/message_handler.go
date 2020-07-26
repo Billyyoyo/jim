@@ -4,6 +4,7 @@ import (
 	"github.com/golang/protobuf/proto"
 	log "github.com/sirupsen/logrus"
 	"jim/common/rpc"
+	"jim/common/tool"
 	"jim/common/utils"
 	"jim/logic/cache"
 	"jim/logic/dao"
@@ -26,6 +27,7 @@ func ReceiveMessage(sendId, sessionId, requestId int64, _type int8, content []by
 		log.Error("recieve message - load members fail: ", err.Error())
 		return
 	}
+	var mms []memberMessage
 	for _, member := range *members {
 		// 取得session下所有的member，并取得每个member的下一个sequence
 		// todo 如果获取序列号成功 但是保存消息失败 那序列号将无法回退
@@ -52,37 +54,50 @@ func ReceiveMessage(sendId, sessionId, requestId int64, _type int8, content []by
 			continue
 		}
 		// 发送到接入服务器，发送到用户客户端
-		receiveMessageNext(&member, message)
+		mms = append(mms, memberMessage{
+			member:  &member,
+			message: message,
+		})
 	}
+	tool.AsyncRun(func() {
+		receiveMessageNext(&mms)
+	})
 	// 发送客户端ack  该流程交给接入服务器  rpc返回无error的时候发送服务器收到的ack给客户端
 	return
 }
 
-// 可以go程来处理后续
-func receiveMessageNext(member *model.User, message *model.Message) {
-	ack := &model.Ack{MsgId: message.Id}
-	conns, err := cache.ListUserConn(member.Id)
-	if err != nil {
-		log.Error("receive message - load all conns fail: ", err.Error())
-		return
-	}
-	for _, conn := range *conns {
-		ack.SendCount++
-		msg := &rpc.Message{
-			Id:         message.Id,
-			SendNo:     message.SendNo,
-			SendId:     message.SenderId,
-			SessionId:  message.SessionId,
-			Time:       message.CreateTime,
-			Status:     rpc.MsgStatus(message.Status),
-			Type:       rpc.MsgType(message.Type),
-			SequenceNo: message.Sequence,
-			Content:    message.Body,
-			DeviceId:   conn.DeviceId,
+type memberMessage struct {
+	member  *model.User
+	message *model.Message
+}
+
+// go程来处理后续
+func receiveMessageNext(mms *[]memberMessage) {
+	for _, mm := range *mms {
+		ack := &model.Ack{MsgId: mm.message.Id}
+		conns, err := cache.ListUserConn(mm.member.Id)
+		if err != nil {
+			log.Error("receive message - load all conns fail: ", err.Error())
+			return
 		}
-		SendMessage(conn.Server, msg)
+		for _, conn := range *conns {
+			ack.SendCount++
+			msg := &rpc.Message{
+				Id:         mm.message.Id,
+				SendNo:     mm.message.SendNo,
+				SendId:     mm.message.SenderId,
+				SessionId:  mm.message.SessionId,
+				Time:       mm.message.CreateTime,
+				Status:     rpc.MsgStatus(mm.message.Status),
+				Type:       rpc.MsgType(mm.message.Type),
+				SequenceNo: mm.message.Sequence,
+				Content:    mm.message.Body,
+				DeviceId:   conn.DeviceId,
+			}
+			SendMessage(conn.Server, msg)
+		}
+		dao.AddAck(ack)
 	}
-	dao.AddAck(ack)
 }
 
 // 给客户端发送消息或推送通知之后，客户端接收到消息或通知将发送该消息的ack给服务端，服务端接收到ack后更新ack表统计消息到达量
@@ -148,7 +163,9 @@ func WithdrawMessage(sessionId, userId, sendNo int64) (ret bool, err error) {
 		return
 	}
 	ret = true
-	withdrawMessageNext(sessionId, userId, sendNo)
+	tool.AsyncRun(func() {
+		withdrawMessageNext(sessionId, userId, sendNo)
+	})
 	return
 }
 

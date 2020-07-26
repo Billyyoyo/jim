@@ -3,6 +3,7 @@ package controller
 import (
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"strconv"
 )
 
 const (
@@ -83,6 +84,11 @@ func SetUserId(c *gin.Context, userId int64) {
 	c.Set("jim_user_id", userId)
 }
 
-func GetUserId(c *gin.Context) int64 {
+func Uid(c *gin.Context) int64 {
 	return c.GetInt64("jim_user_id")
+}
+
+func QueryInt(c *gin.Context, key string) (value int64, err error) {
+	v := c.Query(key)
+	return strconv.ParseInt(v, 10, 64)
 }

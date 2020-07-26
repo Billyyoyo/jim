@@ -11,6 +11,29 @@ import (
 type LogicService struct {
 }
 
+func (s *LogicService) Authorization(ctx context.Context, req *rpc.AuthReq) (resp *rpc.AuthResp, err error) {
+	token, err := handler.Authorization(req.Uid, req.Code)
+	resp = &rpc.AuthResp{}
+	if err != nil {
+		resp.Ret = false
+		return
+	}
+	resp.Token = token
+	resp.Ret = true
+	return
+}
+
+func (s *LogicService) Validate(ctx context.Context, req *rpc.ValidReq) (resp *rpc.ValidResp, err error) {
+	err = handler.Validate(req.Uid, req.DeviceId, req.Token)
+	if err != nil {
+		resp = &rpc.ValidResp{Ret: false}
+		return
+	} else {
+		resp = &rpc.ValidResp{Ret: true}
+		return
+	}
+}
+
 // 连接建立后第一步，保存到设备库，将设备连接缓存到redis，更新设备表的最后连接时间
 func (s *LogicService) Register(ctx context.Context, req *rpc.RegisterReq) (resp *rpc.RegisterResp, err error) {
 	deviceId, lastSequence, err := handler.Register(req.UserId, req.Token, req.Addr, req.Server, req.SerialNo)

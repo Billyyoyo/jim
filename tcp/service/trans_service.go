@@ -2,7 +2,12 @@ package service
 
 import (
 	"context"
+	"fmt"
+	log "github.com/sirupsen/logrus"
+	"google.golang.org/grpc"
 	"jim/common/rpc"
+	"jim/tcp/core"
+	"net"
 )
 
 type TransService struct {
@@ -20,6 +25,23 @@ func (s *TransService) SendAction(ctx context.Context, req *rpc.Action) (empty *
 	return
 }
 
-func (s *TransService) SendKickoff(ctx context.Context, addr *rpc.Text) (empty *rpc.Empty, err error){
+func (s *TransService) SendKickoff(ctx context.Context, addr *rpc.Text) (empty *rpc.Empty, err error) {
 	return
+}
+
+func StartUpRpcService() {
+	log.Info("=====init grpc server=====")
+	addr := fmt.Sprintf("%s:%d", core.AppConfig.Rpc.Host, core.AppConfig.Rpc.Port)
+	listener, err := net.Listen("tcp", addr)
+	if err != nil {
+		panic(err)
+		return
+	}
+	rpcSever := grpc.NewServer()
+	rpc.RegisterSocketServiceServer(rpcSever, &TransService{})
+	log.Info("start listen ", addr)
+	err = rpcSever.Serve(listener)
+	if err != nil {
+		panic(err)
+	}
 }

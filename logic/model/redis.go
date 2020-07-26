@@ -2,16 +2,18 @@ package model
 
 import "encoding/json"
 
-type UserConn struct {
+// todo 根据redis特点    这里还有优化空间
+type UserState struct {
 	Server   string
 	Addr     string
 	DeviceId int64
+	Token    string
 }
 
-func (u *UserConn) MarshalBinary() ([]byte, error) {
+func (u *UserState) MarshalBinary() ([]byte, error) {
 	return json.Marshal(u)
 }
 
-func (u *UserConn) UnmarshalBinary(data []byte) error {
+func (u *UserState) UnmarshalBinary(data []byte) error {
 	return json.Unmarshal(data, u)
 }

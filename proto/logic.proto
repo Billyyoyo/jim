@@ -11,6 +11,10 @@ package rpc;
 
 service LogicService {
 
+    rpc Authorization (AuthReq) returns (AuthResp);
+
+    rpc Validate (ValidReq) returns (ValidResp);
+
     rpc Register (RegisterReq) returns (RegisterResp);
 
     rpc GetSessions (Int64) returns (stream Session);

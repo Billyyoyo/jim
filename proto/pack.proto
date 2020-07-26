@@ -22,8 +22,8 @@ enum PackType {
     PT_UNKNOWN = 0; // 未知
     PT_AUTH = 1; // 设备验证授权
     PT_MSG = 2; // 消息，包括in、out
-    PT_HEARTBEAT = 3; // 服务端心跳
-	PT_DETECT = 4; //客户端心跳
+    PT_PING = 3; // 服务端心跳
+	PT_PONG = 4; //客户端心跳
 	PT_ACTION = 5; // 用户操作
 	PT_NOTIFICATION = 6; //系统通知
 	PT_ACK = 7; // 到达回执

@@ -1,15 +1,63 @@
 package handler
 
 import (
+	"errors"
+	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
 	"jim/common/rpc"
 	"jim/common/utils"
 	"jim/logic/cache"
 	"jim/logic/dao"
 	"jim/logic/model"
+	"strings"
 )
 
+func Authorization(uid int64, code string) (token string, err error) {
+	if uid == 0 {
+		err = errors.New("who r u")
+		log.Error("authorization - who r u", err.Error())
+		return
+	}
+	// todo 需要到oauth2认证code有效
+	if code == "" {
+		err = errors.New("auth code is wrong")
+		log.Error("authorization - auth code is wrong", err.Error())
+		return
+	}
+	token = strings.ReplaceAll(uuid.New().String(), "-", "")
+	err = cache.SaveUserToken(uid, token)
+	return
+}
+
+func Validate(userId int64, deviceId int64, token string) (err error) {
+	conn := &model.UserState{}
+	err = cache.GetUserConn(userId, deviceId, conn)
+	if err != nil {
+		log.Error("validate - get user info fail:", err.Error())
+		return
+	}
+	if token != conn.Token {
+		log.Error("validate - compare token fail:", err.Error())
+		return
+	}
+	return
+}
+
 func Register(userId int64, token, addr, server, serialNo string) (deviceId, lastSequence int64, err error) {
+	// 检查token是否有效
+	uid, err := cache.HasUserToken(token)
+	if err != nil {
+		log.Error("register - check token fail:", err.Error())
+		return
+	}
+	if uid == 0 {
+		log.Error("register - no this token:", err.Error())
+		return
+	}
+	if uid != userId {
+		log.Error("register - token is not belong this user:", err.Error())
+		return
+	}
 	// 检查用户设备是否入库
 	existInDB, device, err := dao.GetDevice(userId, serialNo)
 	if err != nil {
@@ -46,10 +94,11 @@ func Register(userId int64, token, addr, server, serialNo string) (deviceId, las
 		return
 	}
 	//更新redis中的device
-	conn := &model.UserConn{
+	conn := &model.UserState{
 		Server:   server,
 		Addr:     addr,
 		DeviceId: device.Id,
+		Token:    token,
 	}
 	err = cache.SaveUserConn(device.UserId, conn)
 	if err != nil {

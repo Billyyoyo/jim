@@ -4,6 +4,26 @@ option go_package = "rpc";
 
 package rpc;
 
+message AuthReq {
+    int64 uid = 1;
+    string code = 2;
+}
+
+message AuthResp {
+    bool ret = 1;
+    string token = 2;
+}
+
+message ValidReq {
+    int64 uid = 1;
+    int64 deviceId = 2;
+    string token = 3;
+}
+
+message ValidResp {
+    bool ret = 1;
+}
+
 message RegisterReq {
     int64 userId = 1;
     string token = 2;
@@ -55,6 +75,7 @@ message QuitSessionReq {
 message User {
     int64 id = 1;
     string name = 2;
+    string token = 3;
 }
 
 message WithdrawMessageReq {
