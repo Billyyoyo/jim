@@ -17,7 +17,7 @@ var (
 func init() {
 	// todo 从zookeeper获取所有socket接入服务器
 	//clients = map[string]rpc.SocketServiceClient{}
-	serverUrl := "localhost:5000"
+	serverUrl := "localhost:4003"
 	cli, err := createClient(serverUrl)
 	if err != nil {
 		return
@@ -46,7 +46,7 @@ func SendAction(connServer string, action *rpc.Action) {
 }
 
 func SendMessage(connServer string, message *rpc.Message) {
-	fmt.Println("server:", connServer, "send message", message.Type.String(), "to", message.DeviceId)
+	fmt.Println("server:", connServer, "send message", message.Type.String(), "to", message.RemoteAddr)
 	obj, ok := clients.Load("connServer")
 	if ok {
 		cli := obj.(rpc.SocketServiceClient)

@@ -92,7 +92,7 @@ func receiveMessageNext(mms *[]memberMessage) {
 				Type:       rpc.MsgType(mm.message.Type),
 				SequenceNo: mm.message.Sequence,
 				Content:    mm.message.Body,
-				DeviceId:   conn.DeviceId,
+				RemoteAddr: conn.Addr,
 			}
 			SendMessage(conn.Server, msg)
 		}
@@ -178,7 +178,8 @@ func withdrawMessageNext(sessionId, userId, sendNo int64) {
 	}
 	for _, receptorId := range *receptorIds {
 		wa := &rpc.WithdrawMessageAction{
-			MessageId: 0,
+			SendNo:    sendNo,
+			SessionId: sessionId,
 			UserId:    userId,
 		}
 		bs, errr := proto.Marshal(wa)
@@ -194,11 +195,11 @@ func withdrawMessageNext(sessionId, userId, sendNo int64) {
 		// 给所有接受者的device发送消息已撤回的动作
 		for _, conn := range *conns {
 			action := &rpc.Action{
-				UserId:   receptorId,
-				DeviceId: conn.DeviceId,
-				Time:     utils.GetCurrentMS(),
-				Type:     rpc.ActType_ACT_WITHDRAW,
-				Data:     bs,
+				UserId:     receptorId,
+				RemoteAddr: conn.Addr,
+				Time:       utils.GetCurrentMS(),
+				Type:       rpc.ActType_ACT_WITHDRAW,
+				Data:       bs,
 			}
 			SendAction(conn.Server, action)
 		}

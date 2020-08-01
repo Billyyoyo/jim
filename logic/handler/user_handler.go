@@ -9,19 +9,21 @@ import (
 	"jim/logic/cache"
 	"jim/logic/dao"
 	"jim/logic/model"
+	"strconv"
 	"strings"
 )
 
-func Authorization(uid int64, code string) (token string, err error) {
-	if uid == 0 {
-		err = errors.New("who r u")
-		log.Error("authorization - who r u", err.Error())
-		return
-	}
+func Authorization(code string) (uid int64, token string, err error) {
 	// todo 需要到oauth2认证code有效
 	if code == "" {
 		err = errors.New("auth code is wrong")
 		log.Error("authorization - auth code is wrong", err.Error())
+		return
+	}
+	// todo 临时策略
+	uid, err = strconv.ParseInt(code, 10, 64)
+	if err != nil {
+		log.Error("authorization - auth code is expired", err.Error())
 		return
 	}
 	token = strings.ReplaceAll(uuid.New().String(), "-", "")
@@ -85,7 +87,10 @@ func Register(userId int64, token, addr, server, serialNo string) (deviceId, las
 		}
 		if existInCache {
 			// 在线 将在线的连接踢下线
-			SendKickoff(server, &rpc.Text{Value: addr})
+			userConn := &model.UserState{}
+			if er2 := cache.GetUserConn(userId, deviceId, userConn); er2 == nil {
+				SendKickoff(userConn.Server, &rpc.Text{Value: userConn.Addr})
+			}
 		}
 	}
 	err = dao.SaveDevice(device)

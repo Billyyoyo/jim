@@ -15,7 +15,7 @@ message Message {
     bytes content = 8;
     int64 sequenceNo = 9;
     int64 sendNo = 10;
-    int64 deviceId = 11;
+    string remoteAddr = 11;
 }
 
 enum MsgType {

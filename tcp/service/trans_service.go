@@ -3,10 +3,12 @@ package service
 import (
 	"context"
 	"fmt"
+	"github.com/golang/protobuf/proto"
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"jim/common/rpc"
 	"jim/tcp/core"
+	"jim/tcp/server"
 	"net"
 )
 
@@ -14,6 +16,20 @@ type TransService struct {
 }
 
 func (s *TransService) SendMessage(ctx context.Context, req *rpc.Message) (empty *rpc.Empty, err error) {
+	conn := server.GetUserConn(req.RemoteAddr)
+	body, err := proto.Marshal(req)
+	if err != nil {
+		return
+	}
+	pack := &rpc.Output{
+		Type: rpc.PackType_PT_MSG,
+		Data: body,
+	}
+	bs, err := proto.Marshal(pack)
+	if err != nil {
+		return
+	}
+	(*conn).AsyncWrite(bs)
 	return
 }
 
@@ -22,10 +38,27 @@ func (s *TransService) SendNotification(ctx context.Context, req *rpc.Notificati
 }
 
 func (s *TransService) SendAction(ctx context.Context, req *rpc.Action) (empty *rpc.Empty, err error) {
+	conn := server.GetUserConn(req.RemoteAddr)
+	body, err := proto.Marshal(req)
+	if err != nil {
+		return
+	}
+	pack := &rpc.Output{
+		Type: rpc.PackType_PT_ACTION,
+		Data: body,
+	}
+	bs, err := proto.Marshal(pack)
+	if err != nil {
+		return
+	}
+	(*conn).AsyncWrite(bs)
 	return
 }
 
 func (s *TransService) SendKickoff(ctx context.Context, addr *rpc.Text) (empty *rpc.Empty, err error) {
+	log.Info("user online duplicate, so kickoff the old connection")
+	conn := server.GetUserConn(addr.Value)
+	(*conn).Close()
 	return
 }
 

@@ -5,13 +5,13 @@ option go_package = "rpc";
 package rpc;
 
 message AuthReq {
-    int64 uid = 1;
     string code = 2;
 }
 
 message AuthResp {
     bool ret = 1;
-    string token = 2;
+    int64 userId = 2;
+    string token = 3;
 }
 
 message ValidReq {
@@ -22,6 +22,12 @@ message ValidReq {
 
 message ValidResp {
     bool ret = 1;
+}
+
+message RegInfo {
+    int64 userId = 1;
+    string token = 2;
+    string serialNo = 3;
 }
 
 message RegisterReq {

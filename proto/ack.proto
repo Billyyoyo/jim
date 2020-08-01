@@ -1,16 +1,19 @@
 syntax = "proto3";
 
-option go_package="rpc";
+option go_package = "rpc";
 
 package rpc;
 
 message Ack {
-	int64 objId = 1;
-	AckType type= 2;
+    int64 objId = 1;
+    AckType type = 2;
+    int64 seq = 3;
+    int64 requestId = 4;
 }
 
 enum AckType {
-	AT_UNKNOWN = 0;
-	AT_NOTIFICATION = 1;
-	AT_MESSAGE = 2;
+    AT_UNKNOWN = 0;
+    AT_NOTIFICATION = 1;
+    AT_MESSAGE = 2;
+    AT_ACT = 3;
 }

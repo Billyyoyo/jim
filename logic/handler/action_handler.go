@@ -82,6 +82,9 @@ func CreateSession(ownerId int64, name string, _type int8, userIds []int64) (ses
 func createSessionNext(session *model.Session, users *[]model.User) {
 	csa := &rpc.CreateSessionAction{
 		SessionId: session.Id,
+		Name:      session.Name,
+		OwnerId:   session.Owner,
+		Type:      rpc.SessionType(session.Type),
 	}
 	bs, err := proto.Marshal(csa)
 	if err != nil {
@@ -98,11 +101,11 @@ func createSessionNext(session *model.Session, users *[]model.User) {
 		// 用户多端设备
 		for _, conn := range *conns {
 			action := &rpc.Action{
-				UserId:   user.Id,
-				DeviceId: conn.DeviceId,
-				Time:     session.CreateTime,
-				Type:     rpc.ActType_ACT_CREATE,
-				Data:     bs,
+				UserId:     user.Id,
+				RemoteAddr: conn.Addr,
+				Time:       session.CreateTime,
+				Type:       rpc.ActType_ACT_CREATE,
+				Data:       bs,
 			}
 			SendAction(conn.Server, action)
 		}
@@ -159,11 +162,11 @@ func joinSessionNext(sessionId int64, newbie *model.User) {
 		// 用户多端设备
 		for _, conn := range *conns {
 			action := &rpc.Action{
-				UserId:   user.Id,
-				DeviceId: conn.DeviceId,
-				Time:     utils.GetCurrentMS(),
-				Type:     rpc.ActType_ACT_JOIN,
-				Data:     bs,
+				UserId:     user.Id,
+				RemoteAddr: conn.Addr,
+				Time:       utils.GetCurrentMS(),
+				Type:       rpc.ActType_ACT_JOIN,
+				Data:       bs,
 			}
 			SendAction(conn.Server, action)
 		}
@@ -213,11 +216,11 @@ func quitSessionNext(sessionId int64, deler *model.User) {
 		// 用户多端设备
 		for _, conn := range *conns {
 			action := &rpc.Action{
-				UserId:   user.Id,
-				DeviceId: conn.DeviceId,
-				Time:     utils.GetCurrentMS(),
-				Type:     rpc.ActType_ACT_QUIT,
-				Data:     bs,
+				UserId:     user.Id,
+				RemoteAddr: conn.Addr,
+				Time:       utils.GetCurrentMS(),
+				Type:       rpc.ActType_ACT_QUIT,
+				Data:       bs,
 			}
 			SendAction(conn.Server, action)
 		}
@@ -269,11 +272,11 @@ func renameSessionNext(sessionId int64, name string) {
 		// 用户多端设备
 		for _, conn := range *conns {
 			action := &rpc.Action{
-				UserId:   user.Id,
-				DeviceId: conn.DeviceId,
-				Time:     utils.GetCurrentMS(),
-				Type:     rpc.ActType_ACT_RENAME,
-				Data:     bs,
+				UserId:     user.Id,
+				RemoteAddr: conn.Addr,
+				Time:       utils.GetCurrentMS(),
+				Type:       rpc.ActType_ACT_RENAME,
+				Data:       bs,
 			}
 			SendAction(conn.Server, action)
 		}

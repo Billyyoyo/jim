@@ -4,25 +4,18 @@ import (
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 	"jim/common/tool"
-	"strconv"
 )
 
 // 用户请求连接到接入服务器
 // 返回一个接入token
 func Enter(c *gin.Context) {
-	uidStr := c.Query("uid")
 	code := c.Query("code")
-	if uidStr == "" || code == "" {
+	if code == "" {
 		ReturnErr(c, CODE_PARAMS)
 		return
 	}
-	uid, err := strconv.ParseInt(uidStr, 10, 64)
-	if err != nil {
-		ReturnError(c, CODE_PARAMS, "用户id不合法")
-		return
-	}
 	// 献上用户auth令牌进行验证
-	ok, token := tool.Authorization(uid, code)
+	ok, uid, token := tool.Authorization(code)
 	if !ok {
 		ReturnError(c, CODE_RPC, "授权失败")
 		return
@@ -31,9 +24,9 @@ func Enter(c *gin.Context) {
 	address := "localhost:4002"
 
 	result := map[string]interface{}{
-		"address": address,
-		"uid":     uid,
-		"token":   token,
+		"tcpServer": address,
+		"uid":       uid,
+		"token":     token,
 	}
 	ReturnData(c, result)
 }

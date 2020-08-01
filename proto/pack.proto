@@ -4,18 +4,18 @@ option go_package="rpc";
 
 package rpc;
 
+// 服务端接收数据
 message Input {
 	PackType type = 1; // 包的类型
-    int64 request_id = 2; // 请求id
-    bytes data = 3; // 数据 message
+    bytes data = 2; // 数据 message
 }
 
+// 服务端发送数据
 message Output {
 	PackType type = 1; // 包的类型
-    int64 request_id = 2; // 请求id
-    int32 code = 3; // 错误码
-    string info = 4; // 错误信息
-    bytes data = 5; // 数据
+    int32 code = 2; // 错误码
+    string info = 3; // 错误信息
+    bytes data = 4; // 数据
 }
 
 enum PackType {

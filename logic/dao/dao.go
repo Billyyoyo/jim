@@ -72,10 +72,10 @@ func GetMemberInSession(sessionId int64) (users *[]model.User, err error) {
 }
 
 func GetReceptorIdsInSendNo(sessionId, sendNo int64) (ids *[]int64, err error) {
-	ids= &[]int64{}
-	err= db.Table("message").
+	ids = &[]int64{}
+	err = db.Table("message").
 		Where("session_id=?", sessionId).
-		And("send_no=?",sendNo).
+		And("send_no=?", sendNo).
 		Cols("receptor_id").
 		Find(ids)
 	return
@@ -142,7 +142,7 @@ func GetDevice(userId int64, serial string) (ok bool, device *model.Device, err 
 
 func SaveDevice(device *model.Device) (err error) {
 	if device.Id > 0 {
-		_, err = db.Update(device)
+		_, err = db.Id(device.Id).Update(device)
 		if err != nil {
 			device.Id = 0
 			return

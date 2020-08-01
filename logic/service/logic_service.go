@@ -12,7 +12,7 @@ type LogicService struct {
 }
 
 func (s *LogicService) Authorization(ctx context.Context, req *rpc.AuthReq) (resp *rpc.AuthResp, err error) {
-	token, err := handler.Authorization(req.Uid, req.Code)
+	uid, token, err := handler.Authorization(req.Code)
 	resp = &rpc.AuthResp{}
 	if err != nil {
 		resp.Ret = false
@@ -20,6 +20,7 @@ func (s *LogicService) Authorization(ctx context.Context, req *rpc.AuthReq) (res
 	}
 	resp.Token = token
 	resp.Ret = true
+	resp.UserId = uid
 	return
 }
 

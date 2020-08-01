@@ -23,17 +23,18 @@ func init() {
 	cli = rpc.NewLogicServiceClient(conn)
 }
 
-func Authorization(userId int64, code string) (ret bool, token string) {
+func Authorization(code string) (ret bool, uid int64, token string) {
 	req := &rpc.AuthReq{
-		Uid:  userId,
 		Code: code,
 	}
 	resp, err := cli.Authorization(context.Background(), req)
 	if err != nil || !resp.Ret {
+		log.Error("http call rpc err: ", err.Error())
 		ret = false
 	} else {
 		ret = true
 		token = resp.Token
+		uid = resp.UserId
 	}
 	return
 }
@@ -60,6 +61,35 @@ func Validate(userId, deviceId, token string) bool {
 		return false
 	} else {
 		return true
+	}
+}
+
+func RegisterConnection(uid int64, addr, server, serial, token string) (deviceId, lastSeq int64, err error) {
+	req := &rpc.RegisterReq{
+		UserId:   uid,
+		Token:    token,
+		Addr:     addr,
+		Server:   server,
+		SerialNo: serial,
+	}
+	resp, err := cli.Register(context.Background(), req)
+	if err != nil {
+		return
+	}
+	deviceId = resp.DeviceId
+	lastSeq = resp.LastSequence
+	return
+}
+
+func Offline(uid, did, seq int64) () {
+	req := &rpc.OfflineReq{
+		UserId:       uid,
+		DeviceId:     did,
+		LastSequence: seq,
+	}
+	_, err := cli.Offline(context.Background(), req)
+	if err != nil {
+		return
 	}
 }
 
@@ -182,5 +212,52 @@ func RenameSession(userId, sessionId int64, name string) (ret bool, err error) {
 		return
 	}
 	ret = retR.Value
+	return
+}
+
+func SendAck(ack *rpc.Ack) (err error) {
+	_, err = cli.ReceiveACK(context.Background(), ack)
+	return
+}
+
+func SendMsg(msg *rpc.Message) (err error) {
+	_, err = cli.ReceiveMessage(context.Background(), msg)
+	return
+}
+
+func WithdrawMsg(senderId, sessionId, sendNo int64) (ret bool, err error) {
+	req := &rpc.WithdrawMessageReq{
+		SenderId:  senderId,
+		SendNo:    sendNo,
+		SessionId: sessionId,
+	}
+	ok, err := cli.WithdrawMessage(context.Background(), req)
+	ret = ok.Value
+	return
+}
+
+func SyncMsgs(userId int64, cond string) (msgs *[]*rpc.Message, err error) {
+	msgs = &[]*rpc.Message{}
+	req := &rpc.SyncMessageReq{
+		UserId:    0,
+		Condition: "",
+	}
+	stream, err := cli.SyncMessage(context.Background(), req)
+	if err != nil {
+		log.Error("Sync msg - rpc call:", err.Error())
+		return
+	}
+	for {
+		msg, errr := stream.Recv()
+		if errr != nil {
+			if errr == io.EOF {
+				break
+			} else {
+				log.Error("GetSessions - rpc receive:", errr.Error())
+				continue
+			}
+		}
+		*msgs = append(*msgs, msg)
+	}
 	return
 }
