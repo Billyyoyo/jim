@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option go_package="rpc";
+option go_package = "rpc";
 
 package rpc;
 
@@ -9,13 +9,17 @@ message Empty {
 }
 
 message Bool {
-	bool value = 1;
+    bool value = 1;
 }
 
 message Text {
-	string value = 1;
+    string value = 1;
 }
 
 message Int64 {
-	int64 value = 1;
+    int64 value = 1;
+}
+
+message Int32 {
+    int32 value = 1;
 }

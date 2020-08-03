@@ -27,7 +27,8 @@ func ReceiveMessage(sendId, sessionId, requestId int64, _type int8, content []by
 		log.Error("recieve message - load members fail: ", err.Error())
 		return
 	}
-	var mms []memberMessage
+	var mms []model.Message
+	now := utils.GetCurrentMS()
 	for _, member := range *members {
 		// 取得session下所有的member，并取得每个member的下一个sequence
 		// todo 如果获取序列号成功 但是保存消息失败 那序列号将无法回退
@@ -46,7 +47,7 @@ func ReceiveMessage(sendId, sessionId, requestId int64, _type int8, content []by
 			Sequence:   sequence,
 			ReceptorId: member.Id,
 			Body:       content,
-			CreateTime: utils.GetCurrentMS(),
+			CreateTime: now,
 		}
 		errr = dao.AddMessage(message)
 		if errr != nil {
@@ -54,10 +55,7 @@ func ReceiveMessage(sendId, sessionId, requestId int64, _type int8, content []by
 			continue
 		}
 		// 发送到接入服务器，发送到用户客户端
-		mms = append(mms, memberMessage{
-			member:  &member,
-			message: message,
-		})
+		mms = append(mms, *message)
 	}
 	tool.AsyncRun(func() {
 		receiveMessageNext(&mms)
@@ -66,16 +64,11 @@ func ReceiveMessage(sendId, sessionId, requestId int64, _type int8, content []by
 	return
 }
 
-type memberMessage struct {
-	member  *model.User
-	message *model.Message
-}
-
 // go程来处理后续
-func receiveMessageNext(mms *[]memberMessage) {
+func receiveMessageNext(mms *[]model.Message) {
 	for _, mm := range *mms {
-		ack := &model.Ack{MsgId: mm.message.Id}
-		conns, err := cache.ListUserConn(mm.member.Id)
+		ack := &model.Ack{MsgId: mm.Id}
+		conns, err := cache.ListUserConn(mm.ReceptorId)
 		if err != nil {
 			log.Error("receive message - load all conns fail: ", err.Error())
 			return
@@ -83,18 +76,21 @@ func receiveMessageNext(mms *[]memberMessage) {
 		for _, conn := range *conns {
 			ack.SendCount++
 			msg := &rpc.Message{
-				Id:         mm.message.Id,
-				SendNo:     mm.message.SendNo,
-				SendId:     mm.message.SenderId,
-				SessionId:  mm.message.SessionId,
-				Time:       mm.message.CreateTime,
-				Status:     rpc.MsgStatus(mm.message.Status),
-				Type:       rpc.MsgType(mm.message.Type),
-				SequenceNo: mm.message.Sequence,
-				Content:    mm.message.Body,
+				Id:         mm.Id,
+				SendNo:     mm.SendNo,
+				SendId:     mm.SenderId,
+				SessionId:  mm.SessionId,
+				Time:       mm.CreateTime,
+				Status:     rpc.MsgStatus(mm.Status),
+				Type:       rpc.MsgType(mm.Type),
+				SequenceNo: mm.Sequence,
+				Content:    mm.Body,
 				RemoteAddr: conn.Addr,
 			}
-			SendMessage(conn.Server, msg)
+			ret := SendMessage(conn.Server, msg)
+			if ret == 1 {
+				cache.RemoveUserConn(mm.ReceptorId, conn.DeviceId)
+			}
 		}
 		dao.AddAck(ack)
 	}
@@ -201,7 +197,10 @@ func withdrawMessageNext(sessionId, userId, sendNo int64) {
 				Type:       rpc.ActType_ACT_WITHDRAW,
 				Data:       bs,
 			}
-			SendAction(conn.Server, action)
+			ret := SendAction(conn.Server, action)
+			if ret == 1 {
+				cache.RemoveUserConn(receptorId, conn.DeviceId)
+			}
 		}
 	}
 }

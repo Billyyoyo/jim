@@ -232,6 +232,7 @@ func (s *LogicService) SyncMessage(req *rpc.SyncMessageReq, stream rpc.LogicServ
 		if errr != nil {
 			log.Error("stream sync message:", errr.Error())
 		}
+
 	}
 	return
 }

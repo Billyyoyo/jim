@@ -291,7 +291,7 @@ func WithdrawMessage(userId, sendNo int64) (affect int64, err error) {
 	}
 	affect, err = db.
 		Where("sender_id=?", userId).
-		And("create_time>?", utils.GetCurrentMS()-60_000).
+		And("create_time>?", utils.GetCurrentMS()-60000).
 		And("send_no=?", sendNo).
 		And("status=?", model.MESSAGE_STATUS_NORMAL).
 		Update(msg)

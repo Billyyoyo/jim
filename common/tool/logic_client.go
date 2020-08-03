@@ -239,8 +239,8 @@ func WithdrawMsg(senderId, sessionId, sendNo int64) (ret bool, err error) {
 func SyncMsgs(userId int64, cond string) (msgs *[]*rpc.Message, err error) {
 	msgs = &[]*rpc.Message{}
 	req := &rpc.SyncMessageReq{
-		UserId:    0,
-		Condition: "",
+		UserId:    userId,
+		Condition: cond,
 	}
 	stream, err := cli.SyncMessage(context.Background(), req)
 	if err != nil {
@@ -253,7 +253,7 @@ func SyncMsgs(userId int64, cond string) (msgs *[]*rpc.Message, err error) {
 			if errr == io.EOF {
 				break
 			} else {
-				log.Error("GetSessions - rpc receive:", errr.Error())
+				log.Error("Sync msg - rpc receive:", errr.Error())
 				continue
 			}
 		}

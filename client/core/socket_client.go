@@ -150,7 +150,7 @@ func (cli *IMClient) dispatchPack(pack *rpc.Output) {
 	} else if pack.Type == rpc.PackType_PT_ACK {
 		ack:=&rpc.Ack{}
 		if err:=proto.Unmarshal(pack.Data, ack); err==nil{
-			go cli.handleAck(pack.Code, ack)
+			go cli.handleAck(pack.Code, pack.Info, ack)
 		}
 	} else if pack.Type == rpc.PackType_PT_NOTIFICATION {
 
@@ -163,7 +163,7 @@ func (cli *IMClient) heartBeat() {
 	for {
 		select {
 		case <-tick:
-			if time.Now().Unix()-cli.Ctx.PongTime > 30 {
+			if time.Now().Unix()-cli.Ctx.PongTime > 60 {
 				// 心跳超时将关闭连接，并退出
 				log.Info("heart beat timeout")
 				err := cli.conn.Close()

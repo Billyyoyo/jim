@@ -10,7 +10,8 @@ import (
 )
 
 var (
-	cli rpc.LogicServiceClient
+	cli  rpc.LogicServiceClient
+	cli2 rpc.SocketServiceClient
 )
 
 func init() {
@@ -20,6 +21,13 @@ func init() {
 		return
 	}
 	cli = rpc.NewLogicServiceClient(conn)
+
+	conn2, err := grpc.Dial("localhost:4003", grpc.WithInsecure())
+	if err != nil {
+		panic("grpc start up error: " + err.Error())
+		return
+	}
+	cli2 = rpc.NewSocketServiceClient(conn2)
 }
 
 func printj(data interface{}) {

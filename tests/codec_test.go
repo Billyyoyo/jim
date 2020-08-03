@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/binary"
 	"fmt"
@@ -65,7 +66,9 @@ func TestClientCodec(t *testing.T) {
 		return
 	}
 	printl(ens)
-	des, err := core2.Decode(ens)
+
+	ioreader := bufio.NewReader(bytes.NewReader(ens))
+	des, err := core2.Decode(ioreader)
 	if err != nil {
 		printl(err.Error())
 		return

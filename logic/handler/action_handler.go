@@ -107,7 +107,10 @@ func createSessionNext(session *model.Session, users *[]model.User) {
 				Type:       rpc.ActType_ACT_CREATE,
 				Data:       bs,
 			}
-			SendAction(conn.Server, action)
+			ret := SendAction(conn.Server, action)
+			if ret == 1 {
+				cache.RemoveUserConn(user.Id, conn.DeviceId)
+			}
 		}
 	}
 }
@@ -168,7 +171,10 @@ func joinSessionNext(sessionId int64, newbie *model.User) {
 				Type:       rpc.ActType_ACT_JOIN,
 				Data:       bs,
 			}
-			SendAction(conn.Server, action)
+			ret := SendAction(conn.Server, action)
+			if ret == 1 {
+				cache.RemoveUserConn(user.Id, conn.DeviceId)
+			}
 		}
 	}
 }
@@ -222,7 +228,10 @@ func quitSessionNext(sessionId int64, deler *model.User) {
 				Type:       rpc.ActType_ACT_QUIT,
 				Data:       bs,
 			}
-			SendAction(conn.Server, action)
+			ret := SendAction(conn.Server, action)
+			if ret == 1 {
+				cache.RemoveUserConn(user.Id, conn.DeviceId)
+			}
 		}
 	}
 }
@@ -278,7 +287,10 @@ func renameSessionNext(sessionId int64, name string) {
 				Type:       rpc.ActType_ACT_RENAME,
 				Data:       bs,
 			}
-			SendAction(conn.Server, action)
+			ret := SendAction(conn.Server, action)
+			if ret == 1 {
+				cache.RemoveUserConn(user.Id, conn.DeviceId)
+			}
 		}
 	}
 }

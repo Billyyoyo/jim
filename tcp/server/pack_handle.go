@@ -1,12 +1,15 @@
 package server
 
 import (
+	"fmt"
 	"github.com/golang/protobuf/proto"
 	"github.com/panjf2000/gnet"
 	log "github.com/sirupsen/logrus"
 	"jim/common/rpc"
 	"jim/common/tool"
 	"jim/common/utils"
+	"jim/tcp/core"
+	"strconv"
 	"time"
 )
 
@@ -30,7 +33,8 @@ func (cs *TcpServer) handleReg(c gnet.Conn, pack *rpc.RegInfo) (err error) {
 	// 当连接建立 调用logic的register
 	// 同步注册成功 将deviceId放到c.SetContext()中
 	// 验证用户连接信息
-	did, ls, err := tool.RegisterConnection(pack.UserId, c.RemoteAddr().String(), c.LocalAddr().String(), pack.SerialNo, pack.Token)
+	rpcServAddr := fmt.Sprintf("%s:%d", core.AppConfig.Rpc.Host, core.AppConfig.Rpc.Port)
+	did, ls, err := tool.RegisterConnection(pack.UserId, c.RemoteAddr().String(), rpcServAddr, pack.SerialNo, pack.Token)
 	if err != nil {
 		// 注册失败 向客户端发送失败指令
 		pingPack := &rpc.Output{
@@ -180,7 +184,7 @@ func (cs *TcpServer) handleActJoin(c *gnet.Conn, requestId int64, act *rpc.JoinS
 }
 
 func (cs *TcpServer) handleActQuit(c *gnet.Conn, requestId int64, act *rpc.QuitSessionAction) {
-	ok, err := tool.QuitSession(act.UserId, act.UserId)
+	ok, err := tool.QuitSession(act.UserId, act.SessionId)
 	if err != nil || !ok {
 		cs.sendAck(c, requestId, 1, "failed")
 	} else {
@@ -207,7 +211,11 @@ func (cs *TcpServer) handleActCreate(c *gnet.Conn, requestId int64, act *rpc.Cre
 }
 
 func (cs *TcpServer) handleActSync(c *gnet.Conn, requestId int64, act *rpc.SyncMessageAction) {
-	msgs, err := tool.SyncMsgs(act.UserId, act.Cond)
+	cond := act.Cond
+	if act.Cond == "" {
+		cond = strconv.FormatInt((*c).Context().(ConnData).Seq, 10)
+	}
+	msgs, err := tool.SyncMsgs(act.UserId, cond)
 	if err != nil {
 		cs.sendAck(c, requestId, 1, "failed")
 		return

@@ -10,8 +10,8 @@ import "common.proto";
 package rpc;
 
 service SocketService {
-    rpc SendMessage (Message) returns (Empty);
-    rpc SendNotification (Notification) returns (Empty);
-    rpc SendAction (Action) returns (Empty);
+    rpc SendMessage (Message) returns (Int32);
+    rpc SendNotification (Notification) returns (Int32);
+    rpc SendAction (Action) returns (Int32);
     rpc SendKickoff (Text) returns (Empty);
 }

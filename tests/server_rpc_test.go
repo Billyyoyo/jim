@@ -6,7 +6,6 @@ import (
 	"github.com/golang/protobuf/proto"
 	"io"
 	"jim/common/rpc"
-	"jim/common/utils"
 	"testing"
 )
 
@@ -146,6 +145,11 @@ func TestRpcGetMembers(t *testing.T) {
 	}
 }
 
+func TestSendAndWithdraw(t *testing.T){
+	TestRpcReceiveMessage(t)
+	TestRpcWithdrawMessage(t)
+}
+
 func TestRpcReceiveMessage(t *testing.T) {
 	words := rpc.Words{Text: "你好好大家好",}
 	body, err := proto.Marshal(&words)
@@ -154,9 +158,8 @@ func TestRpcReceiveMessage(t *testing.T) {
 		return
 	}
 	message := &rpc.Message{
-		SendId:    3,
-		SessionId: 10,
-		Time:      utils.GetCurrentMS(),
+		SendId:    2,
+		SessionId: 9,
 		RequestId: 1116,
 		Status:    rpc.MsgStatus_MS_NORMAL,
 		Type:      rpc.MsgType_MT_WORDS,
@@ -171,9 +174,9 @@ func TestRpcReceiveMessage(t *testing.T) {
 
 func TestRpcWithdrawMessage(t *testing.T) {
 	req := &rpc.WithdrawMessageReq{
-		SenderId:  3,
-		SendNo:    4,
-		SessionId: 10,
+		SenderId:  2,
+		SendNo:    33,
+		SessionId: 9,
 	}
 	ret, err := cli.WithdrawMessage(context.Background(), req)
 	if err != nil {
@@ -221,7 +224,6 @@ func TestRpcSyncMessage(t *testing.T) {
 
 func TestAuthorization(t *testing.T) {
 	req := &rpc.AuthReq{
-		Uid:  1,
 		Code: "abc",
 	}
 	resp, err := cli.Authorization(context.Background(), req)

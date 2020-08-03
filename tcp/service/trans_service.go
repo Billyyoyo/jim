@@ -15,8 +15,13 @@ import (
 type TransService struct {
 }
 
-func (s *TransService) SendMessage(ctx context.Context, req *rpc.Message) (empty *rpc.Empty, err error) {
+func (s *TransService) SendMessage(ctx context.Context, req *rpc.Message) (code *rpc.Int32, err error) {
+	log.Info("send msg to ", req.RemoteAddr)
 	conn := server.GetUserConn(req.RemoteAddr)
+	if conn == nil {
+		code = &rpc.Int32{Value: 1}
+		return
+	}
 	body, err := proto.Marshal(req)
 	if err != nil {
 		return
@@ -30,15 +35,20 @@ func (s *TransService) SendMessage(ctx context.Context, req *rpc.Message) (empty
 		return
 	}
 	(*conn).AsyncWrite(bs)
+	code = &rpc.Int32{Value: 0}
 	return
 }
 
-func (s *TransService) SendNotification(ctx context.Context, req *rpc.Notification) (empty *rpc.Empty, err error) {
+func (s *TransService) SendNotification(ctx context.Context, req *rpc.Notification) (empty *rpc.Int32, err error) {
 	return
 }
 
-func (s *TransService) SendAction(ctx context.Context, req *rpc.Action) (empty *rpc.Empty, err error) {
+func (s *TransService) SendAction(ctx context.Context, req *rpc.Action) (code *rpc.Int32, err error) {
 	conn := server.GetUserConn(req.RemoteAddr)
+	if conn == nil {
+		code = &rpc.Int32{Value: 1}
+		return
+	}
 	body, err := proto.Marshal(req)
 	if err != nil {
 		return
@@ -52,6 +62,7 @@ func (s *TransService) SendAction(ctx context.Context, req *rpc.Action) (empty *
 		return
 	}
 	(*conn).AsyncWrite(bs)
+	code = &rpc.Int32{Value: 0}
 	return
 }
 
@@ -59,6 +70,7 @@ func (s *TransService) SendKickoff(ctx context.Context, addr *rpc.Text) (empty *
 	log.Info("user online duplicate, so kickoff the old connection")
 	conn := server.GetUserConn(addr.Value)
 	(*conn).Close()
+	empty = &rpc.Empty{}
 	return
 }
 

@@ -131,10 +131,11 @@ func TestReceiveAck(t *testing.T) {
 }
 
 func TestAuthorizationHandle(t *testing.T) {
-	token, err := handler.Authorization(1, "abc")
+	uid, token, err := handler.Authorization("1")
 	if err != nil {
 		printl(err.Error())
 		return
 	}
+	printl(uid)
 	printl(token)
 }

@@ -66,17 +66,17 @@ func (cli *IMClient) handleAction(act *rpc.Action) {
 	fmt.Println(str)
 }
 
-func (cli *IMClient) handleAck(code int32, ack *rpc.Ack) {
+func (cli *IMClient) handleAck(code int32, info string, ack *rpc.Ack) {
 	reqId := strconv.FormatInt(ack.RequestId, 10)
 	if ack.Type == rpc.AckType_AT_ACT {
 		if code > 0 {
-			fmt.Println("requestId: " + reqId + " action executed failed.")
+			fmt.Println("requestId: " + reqId + " action executed failed.",info)
 		} else {
 			fmt.Println("requestId: " + reqId + " action executed success.")
 		}
 	} else if ack.Type == rpc.AckType_AT_MESSAGE {
 		if code > 0 {
-			fmt.Println("requestId: " + reqId + " msg sent failed.")
+			fmt.Println("requestId: " + reqId + " msg sent failed.", info)
 		} else {
 			fmt.Println("requestId: " + reqId + " msg sent success.")
 		}
