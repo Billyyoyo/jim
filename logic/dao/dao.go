@@ -212,44 +212,42 @@ func AddMessage(msg *model.Message) (err error) {
 	return
 }
 
-func GetSessionIdByMessageId(msgId int64) (sessionId int64, err error) {
-	sessionId = 0
-	exist, err := db.Table(&model.Message{}).ID(msgId).Cols("session_id").Get(&sessionId)
-	if err != nil {
-		return
-	}
-	if !exist {
-		err = errors.New("no message id")
-		return
-	}
+func AddOfflineMessage(om *model.OffLineMessage) (err error) {
+	_, err = db.Insert(om)
 	return
 }
 
-func GetMessagesSeqAfter(receptorId int64, seq int64) (msgs *[]model.Message, err error) {
+func GetMessagesSeqAfter(sessionId, start int64, count int) (msgs *[]model.Message, err error) {
 	msgs = &[]model.Message{}
-	err = db.Table(&model.Message{}).
-		Where("receptor_id=?", receptorId).
-		Where("sequence>?", seq).
+	err = db.Table("message").
+		Select("message.*, message.id as oid").
+		Where("session_id=?", sessionId).
+		And("sequence>?", start).
+		OrderBy("sequence").
+		Limit(count).
+		Find(msgs)
+	return
+}
+
+func GetMessagesSeqIn(sessionId int64, seqs []int64) (msgs *[]model.Message, err error) {
+	msgs = &[]model.Message{}
+	err = db.Table("message").
+		Select("message.*, message.id as oid").
+		Where("session_id=?", sessionId).
+		In("sequence", seqs).
 		OrderBy("sequence").
 		Find(msgs)
 	return
 }
 
-func GetMessagesSeqIn(receptorId int64, seqs []int64) (msgs *[]model.Message, err error) {
+func GetMessagesSeqRange(sessionId int64, start int64, end int64) (msgs *[]model.Message, err error) {
 	msgs = &[]model.Message{}
-	err = db.Table(&model.Message{}).
-		Where("receptor_id=?", receptorId).
-		In("sequence", seqs).
-		Find(msgs)
-	return
-}
-
-func GetMessagesSeqRange(receptorId int64, start int64, end int64) (msgs *[]model.Message, err error) {
-	msgs = &[]model.Message{}
-	err = db.Table(&model.Message{}).
-		Where("receptor_id=?", receptorId).
-		Where("sequence>?", start).
+	err = db.Table("message").
+		Select("message.*, message.id as oid").
+		Where("session_id=?", sessionId).
+		And("sequence>?", start).
 		And("sequence<?", end).
+		OrderBy("sequence").
 		Find(msgs)
 	return
 }
@@ -285,16 +283,41 @@ func RenameSession(sessionId int64, name string) (err error) {
 	return
 }
 
-func WithdrawMessage(userId, sendNo int64) (affect int64, err error) {
+func WithdrawMessage(userId, sessionId, messageId int64) (affect int64, err error) {
 	msg := &model.Message{
 		Status: 2,
 	}
 	affect, err = db.
+		Id(messageId).
 		Where("sender_id=?", userId).
+		And("session_id=?", sessionId).
 		And("create_time>?", utils.GetCurrentMS()-60000).
-		And("send_no=?", sendNo).
 		And("status=?", model.MESSAGE_STATUS_NORMAL).
 		Update(msg)
+	return
+}
+
+func GetOfflineMsgs(deviceId int64) (msgs *[]model.OMessage, err error) {
+	msgs = &[]model.OMessage{}
+	err = db.Table("message").
+		Select("message.*, offline_msg.id as oid").
+		Join("INNER", "offline_msg", "message.id=offline_msg.message_id").
+		Where("offline_msg.device_id=?", deviceId).
+		Find(msgs)
+	return
+}
+
+func GetDevicesInSession(sessionId int64) (devices *[]model.Device, err error) {
+	devices = &[]model.Device{}
+	err = db.Table("device").
+		Select("device.*").
+		Join("INNER", "member", "member.user_id=device.user_id").
+		Where("member.session_id=?", sessionId).Find(devices)
+	return
+}
+
+func DeleteOfflineMsg(id int64) (err error) {
+	_, err = db.Id(id).Delete(&model.OffLineMessage{})
 	return
 }
 

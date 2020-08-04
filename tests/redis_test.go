@@ -1,7 +1,6 @@
 package tests
 
 import (
-	"fmt"
 	log "github.com/sirupsen/logrus"
 	"jim/logic/cache"
 	"jim/logic/model"
@@ -15,15 +14,6 @@ func TestToken(t *testing.T) {
 	}
 }
 
-func TestSequence(t *testing.T) {
-	seq, err := cache.GetUserMsgSequence(1)
-	if err != nil {
-		log.Error(err.Error())
-		return
-	}
-	fmt.Println(seq)
-}
-
 func TestSaveUserConn(t *testing.T) {
 	conn1 := &model.UserState{
 		Server:   "localhost:5000",
@@ -35,7 +25,7 @@ func TestSaveUserConn(t *testing.T) {
 
 func TestGetUserConn(t *testing.T) {
 	conn := &model.UserState{}
-	err := cache.GetUserConn(1, 1, conn)
+	err := cache.GetUserConn(1, 19, conn)
 	if err != nil {
 		log.Error(err.Error())
 		return

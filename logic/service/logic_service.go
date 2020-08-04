@@ -37,13 +37,12 @@ func (s *LogicService) Validate(ctx context.Context, req *rpc.ValidReq) (resp *r
 
 // 连接建立后第一步，保存到设备库，将设备连接缓存到redis，更新设备表的最后连接时间
 func (s *LogicService) Register(ctx context.Context, req *rpc.RegisterReq) (resp *rpc.RegisterResp, err error) {
-	deviceId, lastSequence, err := handler.Register(req.UserId, req.Token, req.Addr, req.Server, req.SerialNo)
+	deviceId, err := handler.Register(req.UserId, req.Token, req.Addr, req.Server, req.SerialNo)
 	if err != nil {
 		return
 	}
 	resp = &rpc.RegisterResp{
-		DeviceId:     deviceId,
-		LastSequence: lastSequence,
+		DeviceId: deviceId,
 	}
 	return
 }
@@ -163,17 +162,17 @@ func (s *LogicService) RenameSession(ctx context.Context, req *rpc.RenameSession
 }
 
 // 接收消息
-func (s *LogicService) ReceiveMessage(ctx context.Context, req *rpc.Message) (empty *rpc.Empty, err error) {
+func (s *LogicService) ReceiveMessage(ctx context.Context, req *rpc.Message) (msgId *rpc.Int64, err error) {
 	_type := int8(req.Type)
-	err = handler.ReceiveMessage(req.SendId, req.SessionId, req.RequestId, _type, req.Content)
-	empty = &rpc.Empty{}
+	id, err := handler.ReceiveMessage(req.SendId, req.SessionId, req.RequestId, _type, req.Content)
+	msgId = &rpc.Int64{Value: id}
 	return
 }
 
 // 发送给客户端的消息的ack处理  记录送达数量
 func (s *LogicService) ReceiveACK(ctx context.Context, req *rpc.Ack) (empty *rpc.Empty, err error) {
 	_type := int8(req.Type)
-	err = handler.ReceiveAck(req.ObjId, _type)
+	err = handler.ReceiveAck(req.ObjId, req.RequestId, _type)
 	empty = &rpc.Empty{}
 	return
 }
@@ -195,8 +194,8 @@ func (s *LogicService) GetMembers(req *rpc.Int64, stream rpc.LogicService_GetMem
 }
 
 // 同步消息
-func (s *LogicService) SyncMessage(req *rpc.SyncMessageReq, stream rpc.LogicService_SyncMessageServer) (err error) {
-	continuity, msgs, err := handler.SyncMessage(req.UserId, req.Condition)
+func (s *LogicService) GetMessages(req *rpc.GetMessageReq, stream rpc.LogicService_GetMessagesServer) (err error) {
+	continuity, msgs, err := handler.ListSessionMessages(req.SessionId, req.Condition)
 	if err != nil {
 		return
 	}
@@ -220,7 +219,6 @@ func (s *LogicService) SyncMessage(req *rpc.SyncMessageReq, stream rpc.LogicServ
 			Status:     rpc.MsgStatus(msg.Status),
 			Type:       rpc.MsgType(msg.Type),
 			SequenceNo: msg.Sequence,
-			SendNo:     msg.SendNo,
 		}
 		if msg.Status == model.MESSAGE_STATUS_NORMAL {
 			message.Content = msg.Body
@@ -237,16 +235,46 @@ func (s *LogicService) SyncMessage(req *rpc.SyncMessageReq, stream rpc.LogicServ
 	return
 }
 
+// 同步离线消息
+func (s *LogicService) SyncMessages(req *rpc.SyncMessageReq, stream rpc.LogicService_SyncMessagesServer) (err error) {
+	msgs, err := handler.SyncMessage(req.DeviceId)
+	if err != nil {
+		return
+	}
+	for _, msg := range *msgs {
+		message := &rpc.Message{
+			Id:         msg.Id,
+			SendId:     msg.SenderId,
+			SessionId:  msg.SessionId,
+			Time:       msg.CreateTime,
+			Status:     rpc.MsgStatus(msg.Status),
+			Type:       rpc.MsgType(msg.Type),
+			SequenceNo: msg.Sequence,
+			RequestId:  msg.Oid,
+		}
+		if msg.Status == model.MESSAGE_STATUS_NORMAL {
+			message.Content = msg.Body
+		} else {
+			message.Content = nil
+		}
+		errr := stream.Send(message)
+		if errr != nil {
+			log.Error("stream sync message:", errr.Error())
+		}
+	}
+	return
+}
+
 // 撤回
 func (s *LogicService) WithdrawMessage(ctx context.Context, req *rpc.WithdrawMessageReq) (ret *rpc.Bool, err error) {
-	ok, err := handler.WithdrawMessage(req.SessionId, req.SenderId, req.SendNo)
+	ok, err := handler.WithdrawMessage(req.SessionId, req.SenderId, req.MessageId)
 	ret = &rpc.Bool{Value: ok}
 	return
 }
 
 // 离线 删除redis中设备连接信息 更新数据库中设备的断开时间
 func (s *LogicService) Offline(ctx context.Context, req *rpc.OfflineReq) (empty *rpc.Empty, err error) {
-	err = handler.Offline(req.UserId, req.DeviceId, req.LastSequence)
+	err = handler.Offline(req.UserId, req.DeviceId)
 	empty = &rpc.Empty{}
 	return
 }

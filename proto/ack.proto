@@ -5,10 +5,9 @@ option go_package = "rpc";
 package rpc;
 
 message Ack {
-    int64 objId = 1;
+    int64 objId = 1;  //对象id  如messageId
     AckType type = 2;
-    int64 seq = 3;
-    int64 requestId = 4;
+    int64 requestId = 3;  //来自服务端为客户端自己生成的requestid， 来自客户端的是offline msg id
 }
 
 enum AckType {

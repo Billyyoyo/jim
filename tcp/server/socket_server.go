@@ -28,7 +28,6 @@ type event struct {
 type ConnData struct {
 	Uid      int64  // userId
 	Did      int64  // deviceId
-	Seq      int64  //Last receive message sequence
 	Serial   string //device serial
 	PongTime int64  //ping之后客户端发送pong消息记录收到时间
 }

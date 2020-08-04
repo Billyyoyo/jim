@@ -3,7 +3,9 @@ package tests
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/golang/protobuf/proto"
 	log "github.com/sirupsen/logrus"
+	"jim/common/rpc"
 	"jim/common/utils"
 	"jim/logic/dao"
 	"jim/logic/model"
@@ -107,33 +109,15 @@ func TestAddMessage(t *testing.T) {
 	}
 	msg := &model.Message{
 		SenderId:   1,
-		SessionId:  1,
+		SessionId:  9,
 		Type:       2,
 		Status:     1,
 		Sequence:   3,
-		ReceptorId: 2,
 		Body:       bs,
 		CreateTime: utils.GetCurrentMS(),
 	}
 	dao.AddMessage(msg)
 	printj(msg)
-}
-
-func TestGetMessageList(t *testing.T) {
-	msgs, err := dao.GetMessagesSeqAfter(2, 1)
-	if err != nil {
-		log.Error(err.Error())
-		return
-	}
-	for _, msg := range *msgs {
-		body := map[string]interface{}{}
-		err := json.Unmarshal(msg.Body, &body)
-		if err != nil {
-			log.Error(err.Error())
-			continue
-		}
-		printj(body)
-	}
 }
 
 func TestDelMember(t *testing.T) {
@@ -151,7 +135,7 @@ func TestRenameSession(t *testing.T) {
 }
 
 func TestWithdrawMessage(t *testing.T) {
-	affect, err := dao.WithdrawMessage(1, 1)
+	affect, err := dao.WithdrawMessage(1, 1, 1)
 	if err != nil {
 		log.Error(err.Error())
 		return
@@ -170,5 +154,32 @@ func TestAccumulateArriveCount(t *testing.T) {
 	err := dao.AccumulateAckArriveCount(1)
 	if err != nil {
 		printl(err.Error())
+	}
+}
+
+func TestGetOfflineMessages(t *testing.T) {
+	msgs, err := dao.GetOfflineMsgs(18)
+	if err != nil {
+		printl(err.Error())
+		return
+	}
+	printj(msgs)
+}
+
+func TestGetMessageList(t *testing.T) {
+	msgs, err := dao.GetMessagesSeqAfter(9, 30, 10)
+	if err != nil {
+		log.Error(err.Error())
+		return
+	}
+	for _, msg := range *msgs {
+		body := &rpc.Words{}
+		err := proto.Unmarshal(msg.Body, body)
+		if err != nil {
+			log.Error(err.Error())
+			continue
+		}
+		printj(msg)
+		printj(body)
 	}
 }

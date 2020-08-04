@@ -70,7 +70,6 @@ func TestRpcOffline(t *testing.T) {
 	req := &rpc.OfflineReq{
 		UserId:       1,
 		DeviceId:     16,
-		LastSequence: 0,
 	}
 	_, err := cli.Offline(context.Background(), req)
 	if err != nil {
@@ -175,7 +174,7 @@ func TestRpcReceiveMessage(t *testing.T) {
 func TestRpcWithdrawMessage(t *testing.T) {
 	req := &rpc.WithdrawMessageReq{
 		SenderId:  2,
-		SendNo:    33,
+		MessageId:    33,
 		SessionId: 9,
 	}
 	ret, err := cli.WithdrawMessage(context.Background(), req)
@@ -200,10 +199,9 @@ func TestRpcReceiveAck(t *testing.T) {
 
 func TestRpcSyncMessage(t *testing.T) {
 	req := &rpc.SyncMessageReq{
-		UserId:    3,
-		Condition: "2",
+		DeviceId:    18,
 	}
-	stream, err := cli.SyncMessage(context.Background(), req)
+	stream, err := cli.SyncMessages(context.Background(), req)
 	if err != nil {
 		printl(err.Error())
 		return

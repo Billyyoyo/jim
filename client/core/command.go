@@ -164,7 +164,7 @@ func (cli *IMClient) WithdrawMsg(content string) {
 		fmt.Println("you should enter a session")
 		return
 	}
-	sendNo, err := strconv.ParseInt(content, 10, 64)
+	msgId, err := strconv.ParseInt(content, 10, 64)
 	if err != nil {
 		fmt.Println("params wrong, ex: :- sendNo (sendNo is the index of message in session)")
 		return
@@ -172,7 +172,7 @@ func (cli *IMClient) WithdrawMsg(content string) {
 	act := &rpc.WithdrawMessageAction{
 		SessionId: cli.Ctx.SessionId,
 		UserId:    cli.Ctx.UserId,
-		SendNo:    sendNo,
+		MessageId: msgId,
 	}
 	mbs, err := proto.Marshal(act)
 	if err != nil {
@@ -184,7 +184,7 @@ func (cli *IMClient) WithdrawMsg(content string) {
 
 func (cli *IMClient) SyncMsg() {
 	act := &rpc.SyncMessageAction{
-		UserId: cli.Ctx.UserId,
+		DeviceId: cli.Ctx.DeviceId,
 	}
 	mbs, err := proto.Marshal(act)
 	if err != nil {
@@ -223,6 +223,14 @@ func (cli *IMClient) SwitchSession(content string) {
 		return
 	}
 	cli.Ctx.SessionId = sessionId
+}
+
+func (cli *IMClient) GetMessages(content string) {
+	if cli.Ctx.SessionId == 0 {
+		fmt.Println("you should enter a session")
+		return
+	}
+	GetMessages(&cli.Ctx, content)
 }
 
 func printj(data interface{}) {

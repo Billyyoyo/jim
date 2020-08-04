@@ -24,6 +24,10 @@ enum ActType {
     ACT_SYNC = 4; //同步消息
     ACT_RENAME = 5; // 重命名Session
     ACT_CREATE = 6; // 创建群组
+    ACT_SESSION = 7; // 获取会话信息
+    ACT_SESSIONS = 8; // 获取会话列表
+    ACT_MEMBERS = 9; // 获取成员列表
+    ACT_MESSAGES = 10; // 获取消息列表
 }
 
 message CreateSessionAction {
@@ -47,16 +51,35 @@ message QuitSessionAction {
 message WithdrawMessageAction {
     int64 userId = 1;
     int64 sessionId = 2;
-    int64 sendNo = 3;
+    int64 messageId = 3;
 }
 
 message SyncMessageAction {
-    int64 userId = 1;
-    string cond = 2;
-    repeated Message messages = 3;
+    int64 deviceId = 1;
+    repeated Message messages = 2;
 }
 
 message RenameSessionAction {
     int64 sessionId = 1;
     string name = 2;
+}
+
+message GetMessagesAction {
+    int64 session = 1;
+    string cond = 2;
+    repeated Message messages = 3;
+}
+
+message GetSessionsAction {
+    repeated Session sessions = 1;
+}
+
+message GetSessionAction {
+    int64 sessionId = 1;
+    Session session = 2;
+}
+
+message GetMembersAction {
+    int64 sessionId = 1;
+    repeated User members = 2;
 }

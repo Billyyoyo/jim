@@ -1,0 +1,1 @@
+protoc --proto_path=./ --js_out=import_style=commonjs,binary:../../jim_client/proto/ common.proto ack.proto action.proto model.proto msg.proto notification.proto pack.proto

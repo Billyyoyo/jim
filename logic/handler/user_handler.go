@@ -45,7 +45,7 @@ func Validate(userId int64, deviceId int64, token string) (err error) {
 	return
 }
 
-func Register(userId int64, token, addr, server, serialNo string) (deviceId, lastSequence int64, err error) {
+func Register(userId int64, token, addr, server, serialNo string) (deviceId int64, err error) {
 	// 检查token是否有效
 	uid, err := cache.HasUserToken(token)
 	if err != nil {
@@ -72,7 +72,6 @@ func Register(userId int64, token, addr, server, serialNo string) (deviceId, las
 			SerialNo:     serialNo,
 			LastConnTime: utils.GetCurrentMS(),
 			LastAddress:  addr,
-			LastSequence: 0,
 			CreateTime:   utils.GetCurrentMS(),
 		}
 	} else {
@@ -111,12 +110,10 @@ func Register(userId int64, token, addr, server, serialNo string) (deviceId, las
 		return
 	}
 	deviceId = device.Id
-	// 返回该设备最后消息序号给接入服务器保存
-	lastSequence = device.LastSequence
 	return
 }
 
-func Offline(userId, deviceId, lastSequence int64) (err error) {
+func Offline(userId, deviceId int64) (err error) {
 	// 删除用户设备的在线状态
 	cache.RemoveUserConn(userId, deviceId)
 	// 更新数据库表中的用户设备数据
@@ -126,7 +123,6 @@ func Offline(userId, deviceId, lastSequence int64) (err error) {
 		return
 	}
 	// 更新最后消息序号
-	device.LastSequence = lastSequence
 	device.LastDisconTime = utils.GetCurrentMS()
 	dao.SaveDevice(device)
 	return

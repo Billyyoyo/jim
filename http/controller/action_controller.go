@@ -74,6 +74,31 @@ func GetMembers(c *gin.Context) {
 	ReturnData(c, members)
 }
 
+//从消息存储库拉取消息列表
+func GetMessages(c *gin.Context) {
+	form := &GetMessagesForm{}
+	err := c.ShouldBindQuery(form)
+	if err != nil {
+		ReturnError(c, CODE_PARAMS, err.Error())
+		return
+	}
+	if form.SessionId == 0 {
+		ReturnError(c, CODE_PARAMS, "缺少会话id")
+		return
+	}
+	if form.Cond == "" {
+		ReturnError(c, CODE_PARAMS, "查询条件不能为空")
+		return
+	}
+	msgs, err := tool.GetMessages(form.SessionId, form.Cond)
+	if err != nil {
+		ReturnError(c, CODE_RPC, err.Error())
+		return
+	}
+
+	ReturnData(c, msgs)
+}
+
 // 创建会话
 func CreateSession(c *gin.Context) {
 	form := &CreateSessionForm{}

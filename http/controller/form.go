@@ -11,3 +11,8 @@ type SessionActionForm struct {
 	SessionId int64  `json:"sessionId"`
 	Name      string `json:"name"`
 }
+
+type GetMessagesForm struct {
+	SessionId int64  `form:"sessionId"`
+	Cond      string `form:"cond"`
+}

@@ -44,20 +44,8 @@ func HasUserToken(token string) (userId int64, err error) {
 }
 
 // todo 如果redis挂了 怎么保证sequence的连续性
-func GetUserMsgSequence(userId int64) (no int64, err error) {
-	key := fmt.Sprintf("%s_user_seq_%d", core.AppConfig.Redis.Prefix, userId)
-	cmd := client.Incr(context.Background(), key)
-	if cmd.Err() != nil {
-		err = cmd.Err()
-		return
-	}
-	no = cmd.Val()
-	return
-}
-
-// todo 如果redis挂了 怎么保证sequence的连续性
-func GetSessionMsgSendNo(sessionId int64) (no int64, err error) {
-	key := fmt.Sprintf("%s_session_sno_%d", core.AppConfig.Redis.Prefix, sessionId)
+func GetSessionMsgSequence(sessionId int64) (no int64, err error) {
+	key := fmt.Sprintf("%s_session_seq_%d", core.AppConfig.Redis.Prefix, sessionId)
 	cmd := client.Incr(context.Background(), key)
 	if cmd.Err() != nil {
 		err = cmd.Err()
@@ -77,6 +65,18 @@ func GetUserConn(userId, deviceId int64, userConn *model.UserState) error {
 	key := fmt.Sprintf("%s_user_conn_%d", core.AppConfig.Redis.Prefix, userId)
 	cmd := client.HGet(context.Background(), key, strconv.FormatInt(deviceId, 10))
 	return cmd.Scan(userConn)
+}
+
+func GetUserConnV2(userId, deviceId int64) (userConn *model.UserState, err error) {
+	userConn = &model.UserState{}
+	key := fmt.Sprintf("%s_user_conn_%d", core.AppConfig.Redis.Prefix, userId)
+	cmd := client.HGet(context.Background(), key, strconv.FormatInt(deviceId, 10))
+	if cmd.Err() != nil {
+		err = cmd.Err()
+		return
+	}
+	err = cmd.Scan(userConn)
+	return
 }
 
 func SaveUserConn(userId int64, userConn *model.UserState) error {

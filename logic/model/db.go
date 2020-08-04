@@ -26,14 +26,39 @@ type Message struct {
 	Type       int8   `xorm:"type"`
 	Status     int8   `xorm:"status"`
 	Sequence   int64  `xorm:"sequence"`
-	SendNo     int64  `xorm:"send_no"`
-	ReceptorId int64  `xorm:"receptor_id"`
 	Body       []byte `xorm:"body"`
 	CreateTime int64  `xorm:"create_time"`
 }
 
 func (m *Message) TableName() string {
 	return "message"
+}
+
+type OMessage struct {
+	Id         int64  `xorm:"'id' pk autoincr"`
+	SenderId   int64  `xorm:"sender_id"`
+	SessionId  int64  `xorm:"session_id"`
+	Type       int8   `xorm:"type"`
+	Status     int8   `xorm:"status"`
+	Sequence   int64  `xorm:"sequence"`
+	Body       []byte `xorm:"body"`
+	CreateTime int64  `xorm:"create_time"`
+	Oid        int64  `xorm:"'oid' <-"`
+}
+
+func (m *OMessage) TableName() string {
+	return "message"
+}
+
+type OffLineMessage struct {
+	Id         int64 `xorm:"'id' pk autoincr"`
+	DeviceId   int64 `xorm:"device_id"`
+	MessageId  int64 `xorm:"message_id"`
+	CreateTime int64 `xorm:"create_time"`
+}
+
+func (m *OffLineMessage) TableName() string {
+	return "offline_msg"
 }
 
 type User struct {
@@ -77,7 +102,6 @@ type Device struct {
 	LastAddress    string `xorm:"last_address"`
 	LastConnTime   int64  `xorm:"last_conn_time"`
 	LastDisconTime int64  `xorm:"last_discon_time"`
-	LastSequence   int64  `xorm:"last_sequence"`
 	CreateTime     int64  `xorm:"create_time"`
 }
 

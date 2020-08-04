@@ -19,6 +19,7 @@ func Route(engine *gin.Engine) {
 		sessionGroup.GET("/list", controller.GetSessions)
 		sessionGroup.GET("/get", controller.GetSession)
 		sessionGroup.GET("/members", controller.GetMembers)
+		sessionGroup.GET("/messages", controller.GetMessages)
 		sessionGroup.POST("/rename", controller.RenameSession)
 		sessionGroup.POST("/join", controller.JoinSession)
 		sessionGroup.POST("/quit", controller.QuitSession)

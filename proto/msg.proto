@@ -14,7 +14,6 @@ message Message {
     MsgType type = 7;
     bytes content = 8;
     int64 sequenceNo = 9;
-    int64 sendNo = 10;
     string remoteAddr = 11;
 }
 

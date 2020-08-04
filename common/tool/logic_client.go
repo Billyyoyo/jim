@@ -64,7 +64,7 @@ func Validate(userId, deviceId, token string) bool {
 	}
 }
 
-func RegisterConnection(uid int64, addr, server, serial, token string) (deviceId, lastSeq int64, err error) {
+func RegisterConnection(uid int64, addr, server, serial, token string) (deviceId int64, err error) {
 	req := &rpc.RegisterReq{
 		UserId:   uid,
 		Token:    token,
@@ -77,15 +77,13 @@ func RegisterConnection(uid int64, addr, server, serial, token string) (deviceId
 		return
 	}
 	deviceId = resp.DeviceId
-	lastSeq = resp.LastSequence
 	return
 }
 
-func Offline(uid, did, seq int64) () {
+func Offline(uid, did int64) () {
 	req := &rpc.OfflineReq{
-		UserId:       uid,
-		DeviceId:     did,
-		LastSequence: seq,
+		UserId:   uid,
+		DeviceId: did,
 	}
 	_, err := cli.Offline(context.Background(), req)
 	if err != nil {
@@ -160,6 +158,32 @@ func GetMembers(sessionId int64) (members *[]rpc.User, err error) {
 	return
 }
 
+func GetMessages(sessionId int64, cond string) (messages *[]rpc.Message, err error) {
+	req := &rpc.GetMessageReq{
+		SessionId: sessionId,
+		Condition: cond,
+	}
+	stream, err := cli.GetMessages(context.Background(), req)
+	if err != nil {
+		log.Error("GetMessages - rpc call:", err.Error())
+		return
+	}
+	messages = &[]rpc.Message{}
+	for {
+		msg, errr := stream.Recv()
+		if errr != nil {
+			if errr == io.EOF {
+				break
+			} else {
+				log.Error("GetMessages - rpc receive:", errr.Error())
+				continue
+			}
+		}
+		*messages = append(*messages, *msg)
+	}
+	return
+}
+
 func GetSession(sessionId int64) (resp *rpc.SessionResp, err error) {
 	resp, err = cli.GetSession(context.Background(), &rpc.Int64{Value: sessionId})
 	if err != nil {
@@ -220,15 +244,18 @@ func SendAck(ack *rpc.Ack) (err error) {
 	return
 }
 
-func SendMsg(msg *rpc.Message) (err error) {
-	_, err = cli.ReceiveMessage(context.Background(), msg)
+func SendMsg(msg *rpc.Message) (id int64, err error) {
+	msgId, err := cli.ReceiveMessage(context.Background(), msg)
+	if err == nil {
+		id = msgId.Value
+	}
 	return
 }
 
-func WithdrawMsg(senderId, sessionId, sendNo int64) (ret bool, err error) {
+func WithdrawMsg(senderId, sessionId, messageId int64) (ret bool, err error) {
 	req := &rpc.WithdrawMessageReq{
 		SenderId:  senderId,
-		SendNo:    sendNo,
+		MessageId: messageId,
 		SessionId: sessionId,
 	}
 	ok, err := cli.WithdrawMessage(context.Background(), req)
@@ -236,13 +263,12 @@ func WithdrawMsg(senderId, sessionId, sendNo int64) (ret bool, err error) {
 	return
 }
 
-func SyncMsgs(userId int64, cond string) (msgs *[]*rpc.Message, err error) {
+func SyncMsgs(deviceId int64) (msgs *[]*rpc.Message, err error) {
 	msgs = &[]*rpc.Message{}
 	req := &rpc.SyncMessageReq{
-		UserId:    userId,
-		Condition: cond,
+		DeviceId: deviceId,
 	}
-	stream, err := cli.SyncMessage(context.Background(), req)
+	stream, err := cli.SyncMessages(context.Background(), req)
 	if err != nil {
 		log.Error("Sync msg - rpc call:", err.Error())
 		return

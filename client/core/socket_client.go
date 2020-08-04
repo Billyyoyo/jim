@@ -148,8 +148,8 @@ func (cli *IMClient) dispatchPack(pack *rpc.Output) {
 			go cli.handleAction(act)
 		}
 	} else if pack.Type == rpc.PackType_PT_ACK {
-		ack:=&rpc.Ack{}
-		if err:=proto.Unmarshal(pack.Data, ack); err==nil{
+		ack := &rpc.Ack{}
+		if err := proto.Unmarshal(pack.Data, ack); err == nil {
 			go cli.handleAck(pack.Code, pack.Info, ack)
 		}
 	} else if pack.Type == rpc.PackType_PT_NOTIFICATION {
@@ -223,6 +223,9 @@ func (cli *IMClient) Command(bs []byte) (err error) {
 			} else if command == "sw" {
 				cli.SwitchSession(content)
 				return
+			} else if command == "ms" {
+				cli.GetMessages(content)
+				return
 			} else if command == "-" {
 				return
 			} else if command == "sl" {
@@ -244,6 +247,7 @@ func (cli *IMClient) Command(bs []byte) (err error) {
 				"\n\t:-\twithdraw message" +
 				"\n\t:sl mine\tlist all your sessions" +
 				"\n\t:ml mine\tlist all members in session" +
+				"\n\t:ms\tlist messages in session" +
 				"\n\t:sw\tswitch session")
 		}
 	} else if strings.Index(cmd, "/") == 0 {

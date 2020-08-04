@@ -46,12 +46,12 @@ func (cli *IMClient) handleMsg(msg *rpc.Message) {
 		log.Error("receive a wrong msg, ", err.Error())
 		return
 	}
-	str := fmt.Sprintf("(%d)%d say: %s", msg.SessionId, msg.SendId, words.Text)
+	str := fmt.Sprintf("[%d](%d)%d say: %s", msg.RequestId, msg.SessionId, msg.SendId, words.Text)
 	fmt.Println(str)
 	ack := rpc.Ack{
-		ObjId: msg.Id,
-		Type:  rpc.AckType_AT_MESSAGE,
-		Seq:   msg.SequenceNo,
+		ObjId:     msg.Id,
+		Type:      rpc.AckType_AT_MESSAGE,
+		RequestId: msg.RequestId,
 	}
 	ackbs, err := proto.Marshal(&ack)
 	if err != nil {
@@ -62,21 +62,45 @@ func (cli *IMClient) handleMsg(msg *rpc.Message) {
 }
 
 func (cli *IMClient) handleAction(act *rpc.Action) {
-	str := fmt.Sprintf("%d execute %s", act.UserId, act.Type.String())
-	fmt.Println(str)
+	if act.Type == rpc.ActType_ACT_SYNC {
+		syncAct := &rpc.SyncMessageAction{}
+		err := proto.Unmarshal(act.Data, syncAct)
+		if err != nil {
+			println(err.Error())
+			return
+		}
+		for _, msg := range (*syncAct).Messages {
+			ack := rpc.Ack{
+				ObjId:     msg.Id,
+				Type:      rpc.AckType_AT_MESSAGE,
+				RequestId: msg.RequestId,
+			}
+			ackbs, err := proto.Marshal(&ack)
+			if err != nil {
+				log.Error("cant serialliaze ack", err.Error())
+				return
+			}
+			cli.sendPack(rpc.PackType_PT_ACK, &ackbs)
+		}
+		printj(syncAct.Messages)
+	} else {
+		str := fmt.Sprintf("%d execute %s", act.UserId, act.Type.String())
+
+		fmt.Println(str)
+	}
 }
 
 func (cli *IMClient) handleAck(code int32, info string, ack *rpc.Ack) {
 	reqId := strconv.FormatInt(ack.RequestId, 10)
 	if ack.Type == rpc.AckType_AT_ACT {
 		if code > 0 {
-			fmt.Println("requestId: " + reqId + " action executed failed.",info)
+			fmt.Println("requestId: "+reqId+" action executed failed.", info)
 		} else {
 			fmt.Println("requestId: " + reqId + " action executed success.")
 		}
 	} else if ack.Type == rpc.AckType_AT_MESSAGE {
 		if code > 0 {
-			fmt.Println("requestId: " + reqId + " msg sent failed.", info)
+			fmt.Println("requestId: "+reqId+" msg sent failed.", info)
 		} else {
 			fmt.Println("requestId: " + reqId + " msg sent success.")
 		}

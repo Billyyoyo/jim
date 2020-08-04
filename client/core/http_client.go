@@ -38,6 +38,12 @@ type MSession struct {
 	Type int8
 }
 
+type MMessage struct {
+	Sid     int64
+	Uid     int64
+	Content string
+}
+
 func Authorization(code string) (uid int64, token string, server string, err error) {
 	params := fmt.Sprintf("code=%s", code)
 	resp, err := http.Get(API_URL + "/enter?" + params)
@@ -185,4 +191,30 @@ func GetSession(ctx *Ctx, sessionId int64) (session *MSession, members *[]MUser,
 		*members = append(*members, member)
 	}
 	return
+}
+
+func GetMessages(ctx *Ctx, cond string) {
+	req, err := http.NewRequest("GET", fmt.Sprintf(API_URL+"/session/messages?sessionId=%d&cond=%s", ctx.SessionId, cond), nil)
+	if err != nil {
+		log.Error("get messages - new req fail: ", err.Error())
+		return
+	}
+	setHeader(req, ctx)
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		log.Error("get messages - do fail: ", err.Error())
+		return
+	}
+	bs, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return
+	}
+	log.Info("call http /session/messages, response:\n", string(bs))
+	result := &Result{}
+	err = json.Unmarshal(bs, result)
+	if err != nil {
+		log.Error(err.Error())
+		return
+	}
+	printj(result)
 }

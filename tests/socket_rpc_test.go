@@ -22,7 +22,6 @@ func TestSocketRpcSendMessage(t *testing.T) {
 		Type:                 0,
 		Content:              bs,
 		SequenceNo:           0,
-		SendNo:               0,
 		RemoteAddr:           "127.0.0.1:43514",
 		XXX_NoUnkeyedLiteral: struct{}{},
 		XXX_unrecognized:     nil,

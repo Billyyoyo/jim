@@ -9,7 +9,6 @@ import (
 	"jim/common/tool"
 	"jim/common/utils"
 	"jim/tcp/core"
-	"strconv"
 	"time"
 )
 
@@ -34,7 +33,7 @@ func (cs *TcpServer) handleReg(c gnet.Conn, pack *rpc.RegInfo) (err error) {
 	// 同步注册成功 将deviceId放到c.SetContext()中
 	// 验证用户连接信息
 	rpcServAddr := fmt.Sprintf("%s:%d", core.AppConfig.Rpc.Host, core.AppConfig.Rpc.Port)
-	did, ls, err := tool.RegisterConnection(pack.UserId, c.RemoteAddr().String(), rpcServAddr, pack.SerialNo, pack.Token)
+	did, err := tool.RegisterConnection(pack.UserId, c.RemoteAddr().String(), rpcServAddr, pack.SerialNo, pack.Token)
 	if err != nil {
 		// 注册失败 向客户端发送失败指令
 		pingPack := &rpc.Output{
@@ -55,7 +54,6 @@ func (cs *TcpServer) handleReg(c gnet.Conn, pack *rpc.RegInfo) (err error) {
 		Did:      did,
 		Uid:      pack.UserId,
 		Serial:   pack.SerialNo,
-		Seq:      ls,
 		PongTime: time.Now().Unix(),
 	}
 	c.SetContext(ctx)
@@ -81,9 +79,10 @@ func (cs *TcpServer) handleReg(c gnet.Conn, pack *rpc.RegInfo) (err error) {
 
 func (cs *TcpServer) handleMsg(c *gnet.Conn, msg *rpc.Message) {
 	// 提交给逻辑服务器
-	err := tool.SendMsg(msg)
+	msgId, err := tool.SendMsg(msg)
 	// 逻辑服务器消息落地之后  返回客户端一个收到回执
 	ack := &rpc.Ack{
+		ObjId:     msgId,
 		Type:      rpc.AckType_AT_MESSAGE,
 		RequestId: msg.RequestId,
 	}
@@ -155,23 +154,16 @@ func (cs *TcpServer) handleAct(c *gnet.Conn, pack *rpc.Action) {
 }
 
 func (cs *TcpServer) handleAck(c *gnet.Conn, ack *rpc.Ack) {
+	// 直接交给逻辑服务器  处理消息送达
 	err := tool.SendAck(ack)
 	if err != nil {
 		log.Info("send ack error: ", err.Error())
 		return
 	}
-	// 收到客户端发来的ack 根据最后序列号大小   更新最后序列号
-	if ack.Type == rpc.AckType_AT_MESSAGE {
-		data := (*c).Context().(ConnData)
-		if data.Seq < ack.Seq {
-			data.Seq = ack.Seq
-			(*c).SetContext(data)
-		}
-	}
 }
 
 func (cs *TcpServer) handleOffline(data *ConnData) {
-	tool.Offline(data.Uid, data.Did, data.Seq)
+	tool.Offline(data.Uid, data.Did)
 }
 
 func (cs *TcpServer) handleActJoin(c *gnet.Conn, requestId int64, act *rpc.JoinSessionAction) {
@@ -193,7 +185,7 @@ func (cs *TcpServer) handleActQuit(c *gnet.Conn, requestId int64, act *rpc.QuitS
 }
 
 func (cs *TcpServer) handleActWithdraw(c *gnet.Conn, requestId int64, act *rpc.WithdrawMessageAction) {
-	ok, err := tool.WithdrawMsg(act.UserId, act.SessionId, act.SendNo)
+	ok, err := tool.WithdrawMsg(act.UserId, act.SessionId, act.MessageId)
 	if err != nil || !ok {
 		cs.sendAck(c, requestId, 1, "failed")
 	} else {
@@ -211,11 +203,7 @@ func (cs *TcpServer) handleActCreate(c *gnet.Conn, requestId int64, act *rpc.Cre
 }
 
 func (cs *TcpServer) handleActSync(c *gnet.Conn, requestId int64, act *rpc.SyncMessageAction) {
-	cond := act.Cond
-	if act.Cond == "" {
-		cond = strconv.FormatInt((*c).Context().(ConnData).Seq, 10)
-	}
-	msgs, err := tool.SyncMsgs(act.UserId, cond)
+	msgs, err := tool.SyncMsgs(act.DeviceId)
 	if err != nil {
 		cs.sendAck(c, requestId, 1, "failed")
 		return
@@ -226,8 +214,9 @@ func (cs *TcpServer) handleActSync(c *gnet.Conn, requestId int64, act *rpc.SyncM
 		log.Error("sync msg - marshal body fail: ", err.Error())
 		return
 	}
+	userData := (*c).Context().(ConnData)
 	action := &rpc.Action{
-		UserId:    act.UserId,
+		UserId:    userData.Uid,
 		RequestId: requestId,
 		Time:      utils.GetCurrentMS(),
 		Type:      rpc.ActType_ACT_SYNC,
