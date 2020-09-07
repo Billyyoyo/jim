@@ -30,6 +30,7 @@ func (cs *TestServer) OnOpened(c gnet.Conn) (out []byte, action gnet.Action) {
 
 func (cs *TestServer) React(frame []byte, c gnet.Conn) (out []byte, action gnet.Action) {
 	data := append([]byte{}, frame...)
+	fmt.Println(string(data))
 	tool.AsyncRun(func() {
 		c.AsyncWrite(data)
 	})
@@ -41,7 +42,7 @@ func (cs *TestServer) OnClosed(c gnet.Conn, err error) (action gnet.Action) {
 	return
 }
 
-func TestSocketServer(t *testing.T){
+func TestSocketServer(t *testing.T) {
 	addr := fmt.Sprintf("tcp://%s:%d", "localhost", 4009)
 	socketServer = &TestServer{}
 	err := gnet.Serve(socketServer, addr,
