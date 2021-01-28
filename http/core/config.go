@@ -20,6 +20,19 @@ type appConfig struct {
 		Port    int    `yaml: "port"`
 		LogFile string `yaml: "logfile"`
 	}
+
+	Redis struct {
+		Addr   string `yaml:"addr"`
+		Prefix string `yaml: "prefix"`
+	}
+
+	Database struct {
+		Addr     string `yaml:"addr"`
+		Port     string `yaml:"port"`
+		User     string `yaml:"user"`
+		Password string `yaml:"password"`
+		DB       string `yaml:"db"`
+	}
 }
 
 var (
@@ -90,7 +103,7 @@ func CROS() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		method := c.Request.Method
 		c.Header("Access-Control-Allow-Origin", "*")
-		c.Header("Access-Control-Allow-Headers", "jim-token")
+		c.Header("Access-Control-Allow-Headers", "jim_token")
 		c.Header("Access-Control-Allow-Methods", "POST, PUT, DELETE, GET, OPTIONS")
 		c.Header("Access-Control-Expose-Headers", "Content-Length, Access-Control-Allow-Origin, Access-Control-Allow-Headers, Content-Type")
 		c.Header("Access-Control-Allow-Credentials", "true")

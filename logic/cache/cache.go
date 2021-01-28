@@ -61,25 +61,19 @@ func HasUserConn(userId int64, deviceId int64) (exist bool, err error) {
 	return cmd.Result()
 }
 
-func GetUserConn(userId, deviceId int64, userConn *model.UserState) error {
-	key := fmt.Sprintf("%s_user_conn_%d", core.AppConfig.Redis.Prefix, userId)
-	cmd := client.HGet(context.Background(), key, strconv.FormatInt(deviceId, 10))
-	return cmd.Scan(userConn)
-}
-
-func GetUserConnV2(userId, deviceId int64) (userConn *model.UserState, err error) {
-	userConn = &model.UserState{}
+func GetUserConn(userId, deviceId int64) (userConn model.UserState, err error) {
+	userConn = model.UserState{}
 	key := fmt.Sprintf("%s_user_conn_%d", core.AppConfig.Redis.Prefix, userId)
 	cmd := client.HGet(context.Background(), key, strconv.FormatInt(deviceId, 10))
 	if cmd.Err() != nil {
 		err = cmd.Err()
 		return
 	}
-	err = cmd.Scan(userConn)
+	err = cmd.Scan(&userConn)
 	return
 }
 
-func SaveUserConn(userId int64, userConn *model.UserState) error {
+func SaveUserConn(userId int64, userConn model.UserState) error {
 	key := fmt.Sprintf("%s_user_conn_%d", core.AppConfig.Redis.Prefix, userId)
 	cmd := client.HSet(context.Background(), key, userConn.DeviceId, userConn)
 	return cmd.Err()
@@ -91,7 +85,7 @@ func RemoveUserConn(userId, deviceId int64) error {
 	return cmd.Err()
 }
 
-func ListUserConn(userId int64) (conns *map[string]model.UserState, err error) {
+func ListUserConn(userId int64) (conns map[string]model.UserState, err error) {
 	key := fmt.Sprintf("%s_user_conn_%d", core.AppConfig.Redis.Prefix, userId)
 	cmd := client.HGetAll(context.Background(), key)
 	m, err := cmd.Result()
@@ -104,6 +98,6 @@ func ListUserConn(userId int64) (conns *map[string]model.UserState, err error) {
 		conn.UnmarshalBinary([]byte(v))
 		connd[k] = conn
 	}
-	conns = &connd
+	conns = connd
 	return
 }

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>JIM Home</title>
+</head>
+<body onload="javascript:onPageLoad()">
+<div id="auth_link">
+    <h1><a href="javascript:goAuth()">User Center Login</a></h1>
+</div>
+<div id="user_info_container">
+    <h1>User Info</h1>
+    <h2>Name: <span id="user_name"></span></h2>
+    <h2>Face: <span id="user_face"></span></h2>
+    <h2>Id: <span id="user_id"></span></h2>
+</div>
+<script type="text/javascript">
+    function goAuth() {
+        let serialNo = localStorage.getItem("jim_serial_no")
+        if (!serialNo) {
+            serialNo = genSerial()
+            localStorage.setItem("jim_serial_no", serialNo)
+        }
+        let url = 'http://localhost:4004/authorize?app_id=10000&return_url=http%3a%2f%2flocalhost%3a4001%2fauth%2fcallback&extra=' + serialNo
+        window.location.href = url
+    }
+
+    function onPageLoad() {
+        let token = localStorage.getItem("jim_token")
+        if (token) {
+            loadUserInfo(token)
+        } else {
+            showProfile(false)
+        }
+    }
+
+    function loadUserInfo(token) {
+        let header = new Headers({
+            'accept': 'application/json',
+            'jim_token': token,
+        })
+        fetch("http://localhost:4001/jim/api/v1/user/self", {
+            method: 'get',
+            headers: header,
+            cache: 'no-cache'
+        }).then(resp => {
+            if (resp.status === 200) {
+                let promise = resp.json()
+                promise.then(data => {
+                    if (data.code === 0)
+                        setUserInfo(data.data)
+                })
+                    .catch(e => showProfile(false))
+            } else {
+                showProfile(false)
+            }
+        }).catch(err => {
+            showProfile(false)
+        })
+    }
+
+    function setUserInfo(user) {
+        document.getElementById('user_id').innerText = user.id
+        document.getElementById('user_name').innerText = user.name
+        document.getElementById('user_face').innerText = user.face
+        showProfile(true)
+    }
+
+    function showProfile(flag) {
+        let uel = document.getElementById("user_info_container")
+        let lel = document.getElementById("auth_link")
+        uel.style.display = flag ? 'block' : 'none'
+        lel.style.display = flag ? 'none' : 'block'
+    }
+
+    function genSerial() {
+        var d = new Date().getTime();
+        var uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+            var r = (d + Math.random() * 16) % 16 | 0;
+            d = Math.floor(d / 16);
+            return (c == 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+        });
+        return uuid;
+    }
+
+</script>
+</body>
+</html>

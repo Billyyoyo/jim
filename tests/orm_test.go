@@ -13,7 +13,7 @@ import (
 )
 
 func TestGetUser(t *testing.T) {
-	user, err := dao.GetUser(9)
+	user, err := dao.GetUser(1)
 	if err != nil {
 		fmt.Println(err.Error())
 		return
@@ -31,7 +31,7 @@ func TestGetSessions(t *testing.T) {
 }
 
 func TestGetMembers(t *testing.T) {
-	members, err := dao.GetMemberInSession(1)
+	members, err := dao.GetMemberInSession(10)
 	if err != nil {
 		fmt.Println(err.Error())
 		return
@@ -40,9 +40,9 @@ func TestGetMembers(t *testing.T) {
 }
 
 func TestAddMember(t *testing.T) {
-	member := &model.Member{
+	var member = model.Member{
 		SessionId:  1,
-		UserId:     1,
+		UserId:     2,
 		CreateTime: utils.GetCurrentMS(),
 	}
 	err := dao.AddMemberV2(dao.DB(), member)
@@ -62,7 +62,7 @@ func TestGetDevice(t *testing.T) {
 }
 
 func TestRecordDevice(t *testing.T) {
-	device := &model.Device{
+	device := model.Device{
 		UserId:         1,
 		SerialNo:       "123adskf23ek2jrh",
 		LastAddress:    "10.8.240.133:42123",
@@ -77,23 +77,31 @@ func TestRecordDevice(t *testing.T) {
 }
 
 func TestCreateSession(t *testing.T) {
-	session := &model.Session{
-		Name:       "Go space",
+	session := model.Session{
+		Name:       "Go1 space",
 		Type:       2,
 		Owner:      1,
 		CreateTime: utils.GetCurrentMS(),
 	}
-	dao.CreateSession(dao.DB(), session)
+	err := dao.CreateSession(dao.DB(), session)
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
 	printj(session)
 }
 
 func TestAddAck(t *testing.T) {
-	ack := &model.Ack{
+	ack := model.Ack{
 		MsgId:       1,
 		SendCount:   1,
 		ArriveCount: 0,
 	}
-	dao.AddAck(ack)
+	err := dao.AddAck(ack)
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
 	printj(ack)
 }
 
@@ -107,7 +115,7 @@ func TestAddMessage(t *testing.T) {
 		log.Error(err.Error())
 		return
 	}
-	msg := &model.Message{
+	msg := model.Message{
 		SenderId:   1,
 		SessionId:  9,
 		Type:       2,
@@ -172,7 +180,7 @@ func TestGetMessageList(t *testing.T) {
 		log.Error(err.Error())
 		return
 	}
-	for _, msg := range *msgs {
+	for _, msg := range msgs {
 		body := &rpc.Words{}
 		err := proto.Unmarshal(msg.Body, body)
 		if err != nil {

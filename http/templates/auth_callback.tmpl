@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Application auth callback</title>
+</head>
+<body onload="onPageLoad()">
+<h1>Welcome!</h1>
+<script type="text/javascript">
+    function onPageLoad(){
+        let token = getCookie("im_token")
+        localStorage.setItem("jim_token", token)
+        setTimeout(()=>{
+            window.location = "/index"
+        }, 2000)
+    }
+
+    function getCookie(name) {
+        var prefix = name + "="
+        console.log('cookies: '+document.cookie)
+        var start = document.cookie.indexOf(prefix)
+        if (start == -1) {
+            return null;
+        }
+        var end = document.cookie.indexOf(";", start + prefix.length)
+        if (end == -1) {
+            end = document.cookie.length;
+        }
+        var value = document.cookie.substring(start + prefix.length, end)
+        return unescape(value);
+    }
+</script>
+</body>
+</html>

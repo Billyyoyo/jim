@@ -11,30 +11,6 @@ import (
 type LogicService struct {
 }
 
-func (s *LogicService) Authorization(ctx context.Context, req *rpc.AuthReq) (resp *rpc.AuthResp, err error) {
-	uid, token, err := handler.Authorization(req.Code)
-	resp = &rpc.AuthResp{}
-	if err != nil {
-		resp.Ret = false
-		return
-	}
-	resp.Token = token
-	resp.Ret = true
-	resp.UserId = uid
-	return
-}
-
-func (s *LogicService) Validate(ctx context.Context, req *rpc.ValidReq) (resp *rpc.ValidResp, err error) {
-	err = handler.Validate(req.Uid, req.DeviceId, req.Token)
-	if err != nil {
-		resp = &rpc.ValidResp{Ret: false}
-		return
-	} else {
-		resp = &rpc.ValidResp{Ret: true}
-		return
-	}
-}
-
 // 连接建立后第一步，保存到设备库，将设备连接缓存到redis，更新设备表的最后连接时间
 func (s *LogicService) Register(ctx context.Context, req *rpc.RegisterReq) (resp *rpc.RegisterResp, err error) {
 	deviceId, err := handler.Register(req.UserId, req.Token, req.Addr, req.Server, req.SerialNo)
@@ -53,7 +29,7 @@ func (s *LogicService) GetSessions(req *rpc.Int64, stream rpc.LogicService_GetSe
 	if err != nil {
 		return
 	}
-	for _, ms := range *sessions {
+	for _, ms := range sessions {
 		rs := &rpc.Session{
 			Id:    ms.Id,
 			Name:  ms.Name,
@@ -82,7 +58,7 @@ func (s *LogicService) CreateSession(ctx context.Context, req *rpc.CreateSession
 		Owner: ms.Owner,
 	}
 	resp.Members = []*rpc.User{}
-	for _, m := range *mm {
+	for _, m := range mm {
 		mem := &rpc.User{
 			Id:   m.Id,
 			Name: m.Name,
@@ -106,7 +82,7 @@ func (s *LogicService) GetSession(ctx context.Context, sessionId *rpc.Int64) (re
 		Owner: ms.Owner,
 	}
 	resp.Members = []*rpc.User{}
-	for _, m := range *mm {
+	for _, m := range mm {
 		mem := &rpc.User{
 			Id:   m.Id,
 			Name: m.Name,
@@ -180,7 +156,7 @@ func (s *LogicService) ReceiveACK(ctx context.Context, req *rpc.Ack) (empty *rpc
 // 获取会话中的所有成员
 func (s *LogicService) GetMembers(req *rpc.Int64, stream rpc.LogicService_GetMembersServer) (err error) {
 	members, err := handler.GetMembers(req.Value)
-	for _, member := range *members {
+	for _, member := range members {
 		user := &rpc.User{
 			Id:   member.Id,
 			Name: member.Name,
@@ -200,7 +176,7 @@ func (s *LogicService) GetMessages(req *rpc.GetMessageReq, stream rpc.LogicServi
 		return
 	}
 	var prevSeq int64
-	for _, msg := range *msgs {
+	for _, msg := range msgs {
 		// 检查消息是否连续有序
 		if continuity && prevSeq > 0 && msg.Sequence-prevSeq > 1 {
 			for i := prevSeq + 1; i < msg.Sequence; i++ {
@@ -241,7 +217,7 @@ func (s *LogicService) SyncMessages(req *rpc.SyncMessageReq, stream rpc.LogicSer
 	if err != nil {
 		return
 	}
-	for _, msg := range *msgs {
+	for _, msg := range msgs {
 		message := &rpc.Message{
 			Id:         msg.Id,
 			SendId:     msg.SenderId,

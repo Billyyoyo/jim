@@ -6,7 +6,6 @@ import (
 	"google.golang.org/grpc"
 	"io"
 	"jim/common/rpc"
-	"strconv"
 )
 
 var (
@@ -21,47 +20,6 @@ func init() {
 		return
 	}
 	cli = rpc.NewLogicServiceClient(conn)
-}
-
-func Authorization(code string) (ret bool, uid int64, token string) {
-	req := &rpc.AuthReq{
-		Code: code,
-	}
-	resp, err := cli.Authorization(context.Background(), req)
-	if err != nil || !resp.Ret {
-		log.Error("http call rpc err: ", err.Error())
-		ret = false
-	} else {
-		ret = true
-		token = resp.Token
-		uid = resp.UserId
-	}
-	return
-}
-
-func Validate(userId, deviceId, token string) bool {
-	uid, err := strconv.ParseInt(userId, 10, 64)
-	if err != nil {
-		return false
-	}
-	did, err := strconv.ParseInt(deviceId, 10, 64)
-	if err != nil {
-		return false
-	}
-	if uid == 0 || did == 0 || token == "" {
-		return false
-	}
-	req := &rpc.ValidReq{
-		Uid:      uid,
-		DeviceId: did,
-		Token:    token,
-	}
-	resp, err := cli.Validate(context.Background(), req)
-	if err != nil || !resp.Ret {
-		return false
-	} else {
-		return true
-	}
 }
 
 func RegisterConnection(uid int64, addr, server, serial, token string) (deviceId int64, err error) {
@@ -239,13 +197,13 @@ func RenameSession(userId, sessionId int64, name string) (ret bool, err error) {
 	return
 }
 
-func SendAck(ack *rpc.Ack) (err error) {
-	_, err = cli.ReceiveACK(context.Background(), ack)
+func SendAck(ack rpc.Ack) (err error) {
+	_, err = cli.ReceiveACK(context.Background(), &ack)
 	return
 }
 
-func SendMsg(msg *rpc.Message) (id int64, err error) {
-	msgId, err := cli.ReceiveMessage(context.Background(), msg)
+func SendMsg(msg rpc.Message) (id int64, err error) {
+	msgId, err := cli.ReceiveMessage(context.Background(), &msg)
 	if err == nil {
 		id = msgId.Value
 	}
@@ -253,22 +211,22 @@ func SendMsg(msg *rpc.Message) (id int64, err error) {
 }
 
 func WithdrawMsg(senderId, sessionId, messageId int64) (ret bool, err error) {
-	req := &rpc.WithdrawMessageReq{
+	req := rpc.WithdrawMessageReq{
 		SenderId:  senderId,
 		MessageId: messageId,
 		SessionId: sessionId,
 	}
-	ok, err := cli.WithdrawMessage(context.Background(), req)
+	ok, err := cli.WithdrawMessage(context.Background(), &req)
 	ret = ok.Value
 	return
 }
 
-func SyncMsgs(deviceId int64) (msgs *[]*rpc.Message, err error) {
-	msgs = &[]*rpc.Message{}
-	req := &rpc.SyncMessageReq{
+func SyncMsgs(deviceId int64) (msgs []*rpc.Message, err error) {
+	msgs = []*rpc.Message{}
+	req := rpc.SyncMessageReq{
 		DeviceId: deviceId,
 	}
-	stream, err := cli.SyncMessages(context.Background(), req)
+	stream, err := cli.SyncMessages(context.Background(), &req)
 	if err != nil {
 		log.Error("Sync msg - rpc call:", err.Error())
 		return
@@ -283,7 +241,7 @@ func SyncMsgs(deviceId int64) (msgs *[]*rpc.Message, err error) {
 				continue
 			}
 		}
-		*msgs = append(*msgs, msg)
+		msgs = append(msgs, msg)
 	}
 	return
 }

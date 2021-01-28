@@ -23,7 +23,7 @@ func ReceiveMessage(sendId, sessionId, requestId int64, _type int8, content []by
 	}
 	now := utils.GetCurrentMS()
 	// 保存消息到存储表，落地
-	message := &model.Message{
+	message := model.Message{
 		SenderId:   sendId,
 		SessionId:  sessionId,
 		Type:       _type,
@@ -38,7 +38,7 @@ func ReceiveMessage(sendId, sessionId, requestId int64, _type int8, content []by
 		return
 	}
 	msgId = message.Id
-	dao.AddAck(&model.Ack{MsgId: message.Id})
+	dao.AddAck(model.Ack{MsgId: message.Id})
 
 	tool.AsyncRun(func() {
 		receiveMessageNext(message)
@@ -48,16 +48,16 @@ func ReceiveMessage(sendId, sessionId, requestId int64, _type int8, content []by
 }
 
 // go程来处理后续
-func receiveMessageNext(msg *model.Message) {
+func receiveMessageNext(msg model.Message) {
 	devices, err := dao.GetDevicesInSession(msg.SessionId)
 	if err != nil {
 		log.Error("receive message - load all device id fail:", err.Error())
 		return
 	}
 	now := utils.GetCurrentMS()
-	for _, device := range *devices {
+	for _, device := range devices {
 		// 每个设备的离线消息落地
-		omsg := &model.OffLineMessage{
+		omsg := model.OffLineMessage{
 			DeviceId:   device.Id,
 			MessageId:  msg.Id,
 			CreateTime: now,
@@ -68,14 +68,14 @@ func receiveMessageNext(msg *model.Message) {
 			continue
 		}
 		// 检查设备在线状态
-		state, errr := cache.GetUserConnV2(device.UserId, device.Id)
+		state, errr := cache.GetUserConn(device.UserId, device.Id)
 		if errr != nil {
 			log.Error("receive message - load user conn fail: ", errr.Error())
 			// 如果不在线  只保存离线消息  直接跳过发送
 			continue
 		}
 
-		rmsg := &rpc.Message{
+		rmsg := rpc.Message{
 			Id:         msg.Id,
 			SendId:     msg.SenderId,
 			SessionId:  msg.SessionId,
@@ -115,13 +115,13 @@ func ReceiveAck(objId, reqId int64, _type int8) (err error) {
 // 条件2.多条消息序列号，用,号连接
 // 条件3.消息序列号范围，startNo<endNo
 // 当服务端发现消息列表序列号不连续或不存在，以空消息填充（type=0）
-func SyncMessage(deviceId int64) (messages *[]model.OMessage, err error) {
+func SyncMessage(deviceId int64) (messages []model.OMessage, err error) {
 	// 直接返回该设备的离线消息列表
 	messages, err = dao.GetOfflineMsgs(deviceId)
 	return
 }
 
-func ListSessionMessages(sessionId int64, cond string) (continuity bool, messages *[]model.Message, err error) {
+func ListSessionMessages(sessionId int64, cond string) (continuity bool, messages []model.Message, err error) {
 	if strings.Contains(cond, ":") {
 		se := strings.Split(cond, ":")
 		start, _ := strconv.ParseInt(se[0], 10, 64)
@@ -155,7 +155,7 @@ func ListSessionMessages(sessionId int64, cond string) (continuity bool, message
 		}
 		continuity = true
 	} else {
-		messages = &[]model.Message{}
+		messages = []model.Message{}
 	}
 	return
 }
@@ -187,13 +187,13 @@ func withdrawMessageNext(sessionId, senderId, messageId int64) {
 		log.Error("withdraw message - no receptor found: ", err.Error())
 		return
 	}
-	for _, member := range *members {
-		wa := &rpc.WithdrawMessageAction{
+	for _, member := range members {
+		wa := rpc.WithdrawMessageAction{
 			MessageId: messageId,
 			SessionId: sessionId,
 			UserId:    senderId,
 		}
-		bs, errr := proto.Marshal(wa)
+		bs, errr := proto.Marshal(&wa)
 		if errr != nil {
 			log.Error("withdraw message - serial action content fail: ", err.Error())
 			continue
@@ -204,8 +204,8 @@ func withdrawMessageNext(sessionId, senderId, messageId int64) {
 			continue
 		}
 		// 给所有接受者的device发送消息已撤回的动作
-		for _, conn := range *conns {
-			action := &rpc.Action{
+		for _, conn := range conns {
+			action := rpc.Action{
 				UserId:     member.Id,
 				RemoteAddr: conn.Addr,
 				Time:       utils.GetCurrentMS(),

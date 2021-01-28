@@ -60,8 +60,8 @@ func (cs *TcpServer) React(frame []byte, c gnet.Conn) (out []byte, action gnet.A
 		} else if inPack.Type == rpc.PackType_PT_PING {
 			cs.handlePing(c)
 		} else if inPack.Type == rpc.PackType_PT_AUTH {
-			regInfo := &rpc.RegInfo{}
-			err = proto.Unmarshal(inPack.Data, regInfo)
+			regInfo := rpc.RegInfo{}
+			err = proto.Unmarshal(inPack.Data, &regInfo)
 			if err != nil {
 				log.Error("register connection but parse data err:", err.Error())
 				c.Close()
@@ -74,16 +74,16 @@ func (cs *TcpServer) React(frame []byte, c gnet.Conn) (out []byte, action gnet.A
 				return
 			}
 		} else if inPack.Type == rpc.PackType_PT_MSG {
-			msg := &rpc.Message{}
-			err = proto.Unmarshal(inPack.Data, msg)
+			msg := rpc.Message{}
+			err = proto.Unmarshal(inPack.Data, &msg)
 			cs.handleMsg(&c, msg)
 		} else if inPack.Type == rpc.PackType_PT_ACTION {
-			act := &rpc.Action{}
-			err = proto.Unmarshal(inPack.Data, act)
+			act := rpc.Action{}
+			err = proto.Unmarshal(inPack.Data, &act)
 			cs.handleAct(&c, act)
 		} else if inPack.Type == rpc.PackType_PT_ACK {
-			ack := &rpc.Ack{}
-			err = proto.Unmarshal(inPack.Data, ack)
+			ack := rpc.Ack{}
+			err = proto.Unmarshal(inPack.Data, &ack)
 			cs.handleAck(&c, ack)
 		}
 

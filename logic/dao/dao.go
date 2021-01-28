@@ -38,9 +38,9 @@ func init() {
 	}
 }
 
-func GetUser(id int64) (user *model.User, err error) {
-	user = &model.User{}
-	ret, err := db.Where("id=?", id).Get(user)
+func GetUser(id int64) (user model.User, err error) {
+	user = model.User{}
+	ret, err := db.Where("id=?", id).Get(&user)
 	if err != nil {
 		return
 	}
@@ -51,46 +51,73 @@ func GetUser(id int64) (user *model.User, err error) {
 	return
 }
 
-func GetSessionByUser(userId int64) (sessions *[]model.Session, err error) {
-	sessions = &[]model.Session{}
-	err = db.Table("session").
-		Select("session.*").
-		Join("INNER", "member", "session.id=member.session_id").
-		Where("member.user_id=?", userId).
-		Find(sessions)
+func GetUserByOpenId(openId string) (user model.User, err error) {
+	user = model.User{}
+	ret, err := db.Where("open_id=?", openId).Get(&user)
+	if err != nil {
+		return
+	}
+	if !ret {
+		err = errors.New("no user")
+		return
+	}
 	return
 }
 
-func GetMemberInSession(sessionId int64) (users *[]model.User, err error) {
-	users = &[]model.User{}
-	err = db.Table("user").
-		Select("user.id, user.name").
-		Join("INNER", "member", "user.id=member.user_id").
-		Where("member.session_id=?", sessionId).
-		Find(users)
+func SaveUser(user model.User) (err error) {
+	if user.Id > 0 {
+		_, err = db.Id(user.Id).Update(user)
+		if err != nil {
+			user.Id = 0
+			return
+		}
+	} else {
+		var id int64
+		id, err = db.Insert(user)
+		if err != nil {
+			return
+		}
+		user.Id = id
+	}
 	return
 }
 
-func GetReceptorIdsInSendNo(sessionId, sendNo int64) (ids *[]int64, err error) {
-	ids = &[]int64{}
-	err = db.Table("message").
+func GetSessionByUser(userId int64) (sessions []model.Session, err error) {
+	sessions = []model.Session{}
+	sql := "select s.* from im_session s inner join im_member m on s.id=m.session_id where m.user_id=?"
+	err = db.SQL(sql, userId).Find(&sessions)
+	return
+}
+
+func GetMemberInSession(sessionId int64) (users []model.User, err error) {
+	users = []model.User{}
+	sql := "select u.id, u.name from im_user u inner join im_member m on u.id=m.user_id where m.session_id=?"
+	err = db.SQL(sql, sessionId).Find(&users)
+	return
+}
+
+func GetReceptorIdsInSendNo(sessionId, sendNo int64) (ids []int64, err error) {
+	ids = []int64{}
+	err = db.Table("im_message").
 		Where("session_id=?", sessionId).
 		And("send_no=?", sendNo).
 		Cols("receptor_id").
-		Find(ids)
+		Find(&ids)
 	return
 }
 
-func IsUserInSession(userId, sessionId int64) (ret bool, err error) {
-	ret, err = db.Table("member").
+func IsMember(userId, sessionId int64) (ret bool, err error) {
+	ret, err = db.Table(model.Member{}).
 		Where("user_id=?", userId).
 		And("session_id=?", sessionId).
 		Exist()
 	return
 }
 
-func AddMember(member *model.Member) (err error) {
-	exist, err := db.Table("member").Where("user_id=?", member.UserId).And("session_id=?", member.SessionId).Exist()
+func AddMember(member model.Member) (err error) {
+	exist, err := db.Table(member).
+		Where("user_id=?", member.UserId).
+		And("session_id=?", member.SessionId).Exist()
 	if err != nil {
 		return
 	}
@@ -105,8 +132,10 @@ func AddMember(member *model.Member) (err error) {
 	return
 }
 
-func AddMemberV2(ss *xorm.Session, member *model.Member) (err error) {
-	exist, err := ss.Table("member").Where("user_id=?", member.UserId).And("session_id=?", member.SessionId).Exist()
+func AddMemberV2(ss *xorm.Session, member model.Member) (err error) {
+	exist, err := ss.Table(member).
+		Where("user_id=?", member.UserId).
+		And("session_id=?", member.SessionId).Exist()
 	if err != nil {
 		return
 	}
@@ -121,9 +150,9 @@ func AddMemberV2(ss *xorm.Session, member *model.Member) (err error) {
 	return
 }
 
-func GetDeviceById(id int64) (device *model.Device, err error) {
-	device = &model.Device{}
-	ok, err := db.Id(id).Get(device)
+func GetDeviceById(id int64) (device model.Device, err error) {
+	device = model.Device{}
+	ok, err := db.Id(id).Get(&device)
 	if err != nil {
 		return
 	}
@@ -134,13 +163,13 @@ func GetDeviceById(id int64) (device *model.Device, err error) {
 	return
 }
 
-func GetDevice(userId int64, serial string) (ok bool, device *model.Device, err error) {
-	device = &model.Device{}
-	ok, err = db.Where("user_id=?", userId).And("serial_no=?", serial).Get(device)
+func GetDevice(userId int64, serial string) (ok bool, device model.Device, err error) {
+	device = model.Device{}
+	ok, err = db.Where("user_id=?", userId).And("serial_no=?", serial).Get(&device)
 	return
 }
 
-func SaveDevice(device *model.Device) (err error) {
+func SaveDevice(device model.Device) (err error) {
 	if device.Id > 0 {
 		_, err = db.Id(device.Id).Update(device)
 		if err != nil {
@@ -156,7 +185,7 @@ func SaveDevice(device *model.Device) (err error) {
 	return
 }
 
-func SaveDeviceV2(ss *xorm.Session, device *model.Device) (err error) {
+func SaveDeviceV2(ss *xorm.Session, device model.Device) (err error) {
 	if device.Id > 0 {
 		_, err = ss.Update(device)
 		if err != nil {
@@ -172,14 +201,14 @@ func SaveDeviceV2(ss *xorm.Session, device *model.Device) (err error) {
 	return
 }
 
-func CreateSession(ss *xorm.Session, session *model.Session) (err error) {
+func CreateSession(ss *xorm.Session, session model.Session) (err error) {
 	_, err = ss.Insert(session)
 	return
 }
 
-func GetSession(sessionId int64) (session *model.Session, err error) {
-	session = &model.Session{}
-	exist, err := db.Id(sessionId).Get(session)
+func GetSession(sessionId int64) (session model.Session, err error) {
+	session = model.Session{}
+	exist, err := db.Id(sessionId).Get(&session)
 	if err != nil {
 		return
 	}
@@ -190,74 +219,74 @@ func GetSession(sessionId int64) (session *model.Session, err error) {
 	return
 }
 
-func AddAck(ack *model.Ack) (err error) {
+func AddAck(ack model.Ack) (err error) {
 	_, err = db.Insert(ack)
 	return
 }
 
 func AccumulateAckSendCount(messageId int64) (err error) {
-	sql := "update ack set send_count=send_count+1 where msg_id=?"
+	sql := "update im_ack set send_count=send_count+1 where msg_id=?"
 	_, err = db.Exec(sql, messageId)
 	return
 }
 
 func AccumulateAckArriveCount(messageId int64) (err error) {
-	sql := "update ack set arrive_count=arrive_count+1 where msg_id=?"
+	sql := "update im_ack set arrive_count=arrive_count+1 where msg_id=?"
 	_, err = db.Exec(sql, messageId)
 	return
 }
 
-func AddMessage(msg *model.Message) (err error) {
+func AddMessage(msg model.Message) (err error) {
 	_, err = db.Insert(msg)
 	return
 }
 
-func AddOfflineMessage(om *model.OffLineMessage) (err error) {
+func AddOfflineMessage(om model.OffLineMessage) (err error) {
 	_, err = db.Insert(om)
 	return
 }
 
-func GetMessagesSeqAfter(sessionId, start int64, count int) (msgs *[]model.Message, err error) {
-	msgs = &[]model.Message{}
-	err = db.Table("message").
-		Select("message.*, message.id as oid").
+func GetMessagesSeqAfter(sessionId, start int64, count int) (msgs []model.Message, err error) {
+	msgs = []model.Message{}
+	err = db.Table(model.Message{}).Alias("m").
+		Select("m.*, m.id as oid").
 		Where("session_id=?", sessionId).
 		And("sequence>?", start).
 		OrderBy("sequence").
 		Limit(count).
-		Find(msgs)
+		Find(&msgs)
 	return
 }
 
-func GetMessagesSeqIn(sessionId int64, seqs []int64) (msgs *[]model.Message, err error) {
-	msgs = &[]model.Message{}
-	err = db.Table("message").
-		Select("message.*, message.id as oid").
+func GetMessagesSeqIn(sessionId int64, seqs []int64) (msgs []model.Message, err error) {
+	msgs = []model.Message{}
+	err = db.Table(model.Message{}).Alias("m").
+		Select("m.*, m.id as oid").
 		Where("session_id=?", sessionId).
 		In("sequence", seqs).
 		OrderBy("sequence").
-		Find(msgs)
+		Find(&msgs)
 	return
 }
 
-func GetMessagesSeqRange(sessionId int64, start int64, end int64) (msgs *[]model.Message, err error) {
-	msgs = &[]model.Message{}
-	err = db.Table("message").
-		Select("message.*, message.id as oid").
+func GetMessagesSeqRange(sessionId int64, start int64, end int64) (msgs []model.Message, err error) {
+	msgs = []model.Message{}
+	err = db.Table(model.Message{}).Alias("m").
+		Select("m.*, m.id as oid").
 		Where("session_id=?", sessionId).
 		And("sequence>?", start).
 		And("sequence<?", end).
 		OrderBy("sequence").
-		Find(msgs)
+		Find(&msgs)
 	return
 }
 
 func DeleteMember(sessionId, userId int64) (err error) {
-	member := &model.Member{}
+	member := model.Member{}
 	yes, err := db.Table(member).
 		Where("session_id=?", sessionId).
 		And("user_id=?", userId).
-		Get(member)
+		Get(&member)
 	if err != nil {
 		return
 	}
@@ -284,7 +313,7 @@ func RenameSession(sessionId int64, name string) (err error) {
 }
 
 func WithdrawMessage(userId, sessionId, messageId int64) (affect int64, err error) {
-	msg := &model.Message{
+	msg := model.Message{
 		Status: 2,
 	}
 	affect, err = db.
@@ -297,27 +326,22 @@ func WithdrawMessage(userId, sessionId, messageId int64) (affect int64, err erro
 	return
 }
 
-func GetOfflineMsgs(deviceId int64) (msgs *[]model.OMessage, err error) {
-	msgs = &[]model.OMessage{}
-	err = db.Table("message").
-		Select("message.*, offline_msg.id as oid").
-		Join("INNER", "offline_msg", "message.id=offline_msg.message_id").
-		Where("offline_msg.device_id=?", deviceId).
-		Find(msgs)
+func GetOfflineMsgs(deviceId int64) (msgs []model.OMessage, err error) {
+	msgs = []model.OMessage{}
+	sql := "select m.* from im_message m inner join im_offline_message om on m.id=om.message_id where om.device_id=?"
+	err = db.SQL(sql, deviceId).Find(&msgs)
 	return
 }
 
-func GetDevicesInSession(sessionId int64) (devices *[]model.Device, err error) {
-	devices = &[]model.Device{}
-	err = db.Table("device").
-		Select("device.*").
-		Join("INNER", "member", "member.user_id=device.user_id").
-		Where("member.session_id=?", sessionId).Find(devices)
+func GetDevicesInSession(sessionId int64) (devices []model.Device, err error) {
+	devices = []model.Device{}
+	sql := "select d.* from im_device d inner join im_member m on d.user_id=m.user_id where m.session_id=?"
+	err = db.SQL(sql, sessionId).Find(&devices)
 	return
 }
 
 func DeleteOfflineMsg(id int64) (err error) {
-	_, err = db.Id(id).Delete(&model.OffLineMessage{})
+	_, err = db.Id(id).Delete(model.OffLineMessage{})
 	return
 }
 

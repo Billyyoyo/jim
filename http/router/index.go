@@ -2,15 +2,24 @@ package router
 
 import (
 	"github.com/gin-gonic/gin"
-	"jim/common/tool"
 	"jim/http/controller"
-	"strconv"
+	"jim/http/dao"
 )
 
 func Route(engine *gin.Engine) {
+	engine.LoadHTMLGlob("http/templates/*")
+	engine.GET("/index", controller.Index)
+	engine.GET("/auth/callback", controller.AuthCallback)
 	apiOneGroup := engine.Group("/jim/api/v1")
 	{
-		apiOneGroup.GET("/enter", controller.Enter)
+		userGroup := apiOneGroup.Group("/user")
+		userGroup.Use(AuthorizationFilter())
+		userGroup.GET("/self", controller.UserSelf)
+	}
+	{
+		tcpGroup := apiOneGroup.Group("/conn")
+		tcpGroup.Use(AuthorizationFilter())
+		tcpGroup.GET("/endpoint", controller.GetConnEndPoint)
 	}
 	{
 		sessionGroup := apiOneGroup.Group("/session")
@@ -29,17 +38,17 @@ func Route(engine *gin.Engine) {
 func AuthorizationFilter() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// 校验token
-		uid := c.GetHeader("jim-uid")
-		token := c.GetHeader("jim-token")
-		deviceId := c.GetHeader("jim-device")
-		if !tool.Validate(uid, deviceId, token) {
+		token := c.GetHeader("jim_token")
+		tokenInfo, err := dao.HasToken(token)
+		if err != nil {
 			controller.ReturnErr(c, controller.CODE_AUTH)
 			c.Abort()
 			return
 		}
 		// 将用户id保存到context
-		uidint, _ := strconv.ParseInt(uid, 10, 64)
-		controller.SetUserId(c, uidint)
+		c.Set("jim_user_id", tokenInfo.UserId)
+		c.Set("jim_serial_no", tokenInfo.SerialNo)
+		c.Set("jim_token", tokenInfo.Token)
 		c.Next()
 	}
 }

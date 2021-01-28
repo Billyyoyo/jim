@@ -26,11 +26,11 @@ func (s *TransService) SendMessage(ctx context.Context, req *rpc.Message) (code 
 	if err != nil {
 		return
 	}
-	pack := &rpc.Output{
+	pack := rpc.Output{
 		Type: rpc.PackType_PT_MSG,
 		Data: body,
 	}
-	bs, err := proto.Marshal(pack)
+	bs, err := proto.Marshal(&pack)
 	if err != nil {
 		return
 	}
@@ -53,11 +53,11 @@ func (s *TransService) SendAction(ctx context.Context, req *rpc.Action) (code *r
 	if err != nil {
 		return
 	}
-	pack := &rpc.Output{
+	pack := rpc.Output{
 		Type: rpc.PackType_PT_ACTION,
 		Data: body,
 	}
-	bs, err := proto.Marshal(pack)
+	bs, err := proto.Marshal(&pack)
 	if err != nil {
 		return
 	}

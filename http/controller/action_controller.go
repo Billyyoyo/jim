@@ -4,29 +4,31 @@ import (
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 	"jim/common/tool"
+	"jim/http/dao"
 )
 
-// 用户请求连接到接入服务器
-// 返回一个接入token
-func Enter(c *gin.Context) {
-	code := c.Query("code")
-	if code == "" {
-		ReturnErr(c, CODE_PARAMS)
+func UserSelf(c *gin.Context) {
+	user, err := dao.GetUser(Uid(c))
+	if err != nil {
+		ReturnErr(c, CODE_NO_USER_INFO)
 		return
 	}
-	// 献上用户auth令牌进行验证
-	ok, uid, token := tool.Authorization(code)
-	if !ok {
-		ReturnError(c, CODE_RPC, "授权失败")
-		return
+	resp := UserResp{
+		Id:   user.Id,
+		Name: user.Name,
+		Face: user.Face,
 	}
-	// 通过服务发现找到一个连接数最少的接入服务器 todo 返回一个固定接入服务器地址
-	address := "localhost:4002"
+	ReturnData(c, resp)
+}
 
+func GetConnEndPoint(c *gin.Context) {
+	//userId:=Uid(c)
+	//serialNo:=c.Query("serial_no")
+	// todo 考虑当同一台客户端在线的情况下需要获取接入点
+	// todo 从etcd获取负载最低的tcp服务器接入点
+	address := "localhost:4002"
 	result := map[string]interface{}{
-		"tcpServer": address,
-		"uid":       uid,
-		"token":     token,
+		"end_point": address,
 	}
 	ReturnData(c, result)
 }

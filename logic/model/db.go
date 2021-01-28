@@ -30,8 +30,8 @@ type Message struct {
 	CreateTime int64  `xorm:"create_time"`
 }
 
-func (m *Message) TableName() string {
-	return "message"
+func (m Message) TableName() string {
+	return "im_message"
 }
 
 type OMessage struct {
@@ -46,8 +46,8 @@ type OMessage struct {
 	Oid        int64  `xorm:"'oid' <-"`
 }
 
-func (m *OMessage) TableName() string {
-	return "message"
+func (m OMessage) TableName() string {
+	return "im_message"
 }
 
 type OffLineMessage struct {
@@ -57,19 +57,21 @@ type OffLineMessage struct {
 	CreateTime int64 `xorm:"create_time"`
 }
 
-func (m *OffLineMessage) TableName() string {
-	return "offline_msg"
+func (m OffLineMessage) TableName() string {
+	return "im_offline_msg"
 }
 
 type User struct {
-	Id         int64  `xorm:"'id' pk autoincr"`
-	Name       string `xorm:"name"`
-	Pwd        string `xorm:"password"`
-	CreateTime int64  `xorm:"create_time"`
+	Id           int64  `xorm:"'id' pk autoincr"`
+	Name         string `xorm:"name"`
+	OpenId       string `xorm:"open_id"`
+	Face         string `xorm:"face"`
+	AuthToken  string `xorm:"auth_token"`
+	CreateTime   int64  `xorm:"create_time"`
 }
 
-func (u *User) TableName() string {
-	return "user"
+func (u User) TableName() string {
+	return "im_user"
 }
 
 type Session struct {
@@ -80,8 +82,8 @@ type Session struct {
 	CreateTime int64  `xorm:"create_time"`
 }
 
-func (s *Session) TableName() string {
-	return "session"
+func (s Session) TableName() string {
+	return "im_session"
 }
 
 type Member struct {
@@ -91,8 +93,8 @@ type Member struct {
 	CreateTime int64 `xorm:"create_time"`
 }
 
-func (m *Member) TableName() string {
-	return "member"
+func (m Member) TableName() string {
+	return "im_member"
 }
 
 type Device struct {
@@ -105,8 +107,8 @@ type Device struct {
 	CreateTime     int64  `xorm:"create_time"`
 }
 
-func (d *Device) TableName() string {
-	return "device"
+func (d Device) TableName() string {
+	return "im_device"
 }
 
 type Ack struct {
@@ -116,6 +118,6 @@ type Ack struct {
 	ArriveCount int   `xorm:"arrive_count"`
 }
 
-func (a *Ack) TableName() string {
-	return "ack"
+func (a Ack) TableName() string {
+	return "im_ack"
 }

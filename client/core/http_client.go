@@ -6,6 +6,7 @@ import (
 	"fmt"
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
+	"jim/common"
 	"net/http"
 	"strconv"
 )
@@ -13,13 +14,6 @@ import (
 const (
 	API_URL = "http://localhost:4001/jim/api/v1"
 )
-
-type Result struct {
-	Code int         `json:"code"`
-	Msg  string      `json:"msg"`
-	Desc string      `json:"desc"`
-	Data interface{} `json:"data"`
-}
 
 type AuthInfo struct {
 	TcpServer string `json:"tcpServer"`
@@ -55,7 +49,7 @@ func Authorization(code string) (uid int64, token string, server string, err err
 		return
 	}
 	log.Info("call http /enter, response:\n", string(bs))
-	result := &Result{}
+	result := &common.Result{}
 	err = json.Unmarshal(bs, result)
 	if err != nil {
 		return
@@ -74,7 +68,7 @@ func Authorization(code string) (uid int64, token string, server string, err err
 func setHeader(req *http.Request, ctx *Ctx) {
 	req.Header.Add("jim-uid", strconv.FormatInt(ctx.UserId, 10))
 	req.Header.Add("jim-device", strconv.FormatInt(ctx.DeviceId, 10))
-	req.Header.Add("jim-token", ctx.Token)
+	req.Header.Add("jim_token", ctx.Token)
 }
 
 func GetSessions(ctx *Ctx) (sessions *[]MSession, err error) {
@@ -94,7 +88,7 @@ func GetSessions(ctx *Ctx) (sessions *[]MSession, err error) {
 		return
 	}
 	log.Info("call http /session/list, response:\n", string(bs))
-	result := &Result{}
+	result := &common.Result{}
 	err = json.Unmarshal(bs, result)
 	if err != nil {
 		log.Error(err.Error())
@@ -131,7 +125,7 @@ func GetMembers(ctx *Ctx) (members *[]MUser, err error) {
 		return
 	}
 	log.Info("call http /session/list, response:\n", string(bs))
-	result := &Result{}
+	result := &common.Result{}
 	err = json.Unmarshal(bs, result)
 	if err != nil {
 		log.Error(err.Error())
@@ -167,7 +161,7 @@ func GetSession(ctx *Ctx, sessionId int64) (session *MSession, members *[]MUser,
 		return
 	}
 	log.Info("call http /session/get, response:\n", string(bs))
-	result := &Result{}
+	result := &common.Result{}
 	err = json.Unmarshal(bs, result)
 	if err != nil {
 		log.Error(err.Error())
@@ -210,7 +204,7 @@ func GetMessages(ctx *Ctx, cond string) {
 		return
 	}
 	log.Info("call http /session/messages, response:\n", string(bs))
-	result := &Result{}
+	result := &common.Result{}
 	err = json.Unmarshal(bs, result)
 	if err != nil {
 		log.Error(err.Error())

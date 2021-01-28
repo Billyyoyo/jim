@@ -1,49 +1,13 @@
 package handler
 
 import (
-	"errors"
-	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
 	"jim/common/rpc"
 	"jim/common/utils"
 	"jim/logic/cache"
 	"jim/logic/dao"
 	"jim/logic/model"
-	"strconv"
-	"strings"
 )
-
-func Authorization(code string) (uid int64, token string, err error) {
-	// todo 需要到oauth2认证code有效
-	if code == "" {
-		err = errors.New("auth code is wrong")
-		log.Error("authorization - auth code is wrong", err.Error())
-		return
-	}
-	// todo 临时策略
-	uid, err = strconv.ParseInt(code, 10, 64)
-	if err != nil {
-		log.Error("authorization - auth code is expired", err.Error())
-		return
-	}
-	token = strings.ReplaceAll(uuid.New().String(), "-", "")
-	err = cache.SaveUserToken(uid, token)
-	return
-}
-
-func Validate(userId int64, deviceId int64, token string) (err error) {
-	conn := &model.UserState{}
-	err = cache.GetUserConn(userId, deviceId, conn)
-	if err != nil {
-		log.Error("validate - get user info fail:", err.Error())
-		return
-	}
-	if token != conn.Token {
-		log.Error("validate - compare token fail:", err.Error())
-		return
-	}
-	return
-}
 
 func Register(userId int64, token, addr, server, serialNo string) (deviceId int64, err error) {
 	// 检查token是否有效
@@ -67,7 +31,7 @@ func Register(userId int64, token, addr, server, serialNo string) (deviceId int6
 		return
 	}
 	if !existInDB {
-		device = &model.Device{
+		device = model.Device{
 			UserId:       userId,
 			SerialNo:     serialNo,
 			LastConnTime: utils.GetCurrentMS(),
@@ -86,9 +50,9 @@ func Register(userId int64, token, addr, server, serialNo string) (deviceId int6
 		}
 		if existInCache {
 			// 在线 将在线的连接踢下线
-			userConn := &model.UserState{}
-			if er2 := cache.GetUserConn(userId, deviceId, userConn); er2 == nil {
-				SendKickoff(userConn.Server, &rpc.Text{Value: userConn.Addr})
+			userConn, er2 := cache.GetUserConn(userId, deviceId)
+			if er2 == nil {
+				SendKickoff(userConn.Server, rpc.Text{Value: userConn.Addr})
 			}
 		}
 	}
@@ -98,7 +62,7 @@ func Register(userId int64, token, addr, server, serialNo string) (deviceId int6
 		return
 	}
 	//更新redis中的device
-	conn := &model.UserState{
+	conn := model.UserState{
 		Server:   server,
 		Addr:     addr,
 		DeviceId: device.Id,
@@ -128,7 +92,7 @@ func Offline(userId, deviceId int64) (err error) {
 	return
 }
 
-func GetMembers(sessionId int64) (members *[]model.User, err error) {
+func GetMembers(sessionId int64) (members []model.User, err error) {
 	members, err = dao.GetMemberInSession(sessionId)
 	if err != nil {
 		log.Error("getmembers - get members fail: ", err.Error())
@@ -136,7 +100,7 @@ func GetMembers(sessionId int64) (members *[]model.User, err error) {
 	return
 }
 
-func GetSessions(userId int64) (sessions *[]model.Session, err error) {
+func GetSessions(userId int64) (sessions []model.Session, err error) {
 	sessions, err = dao.GetSessionByUser(userId)
 	if err != nil {
 		log.Error("getsessions - get sessions fail: ", err.Error())
@@ -144,7 +108,7 @@ func GetSessions(userId int64) (sessions *[]model.Session, err error) {
 	return
 }
 
-func GetSession(sessionId int64) (session *model.Session, members *[]model.User, err error) {
+func GetSession(sessionId int64) (session model.Session, members []model.User, err error) {
 	session, err = dao.GetSession(sessionId)
 	if err != nil {
 		log.Error("getsession - get sessions fail: ", err.Error())

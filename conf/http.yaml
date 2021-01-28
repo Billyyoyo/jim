@@ -3,3 +3,14 @@ server:
   host: localhost
   port: 4001
   logfile: ./log/http-
+
+redis:
+  addr: localhost:6379
+  prefix: jim
+
+database:
+  addr: localhost
+  port: 3306
+  user: root
+  password: hanjing
+  db: jim

@@ -11,7 +11,7 @@ import (
 	"jim/logic/model"
 )
 
-func CreateSession(ownerId int64, name string, _type int8, userIds []int64) (session *model.Session, members *[]model.User, err error) {
+func CreateSession(ownerId int64, name string, _type int8, userIds []int64) (session model.Session, members []model.User, err error) {
 	ss := dao.DB()
 	defer ss.Close()
 	err = ss.Begin()
@@ -26,7 +26,7 @@ func CreateSession(ownerId int64, name string, _type int8, userIds []int64) (ses
 		return
 	}
 	// 创建会话
-	session = &model.Session{
+	session = model.Session{
 		Name:       name,
 		Type:       _type,
 		Owner:      ownerId,
@@ -38,9 +38,9 @@ func CreateSession(ownerId int64, name string, _type int8, userIds []int64) (ses
 		ss.Rollback()
 		return
 	}
-	members = &[]model.User{}
+	members = []model.User{}
 	// 创建者加入成员
-	om := &model.Member{
+	om := model.Member{
 		SessionId:  session.Id,
 		UserId:     owner.Id,
 		CreateTime: utils.GetCurrentMS(),
@@ -51,10 +51,10 @@ func CreateSession(ownerId int64, name string, _type int8, userIds []int64) (ses
 		ss.Rollback()
 		return
 	}
-	*members = append(*members, *owner)
+	members = append(members, owner)
 	//加入其他成员
 	for _, userId := range userIds {
-		m := &model.Member{
+		m := model.Member{
 			SessionId:  session.Id,
 			UserId:     userId,
 			CreateTime: utils.GetCurrentMS(),
@@ -69,7 +69,7 @@ func CreateSession(ownerId int64, name string, _type int8, userIds []int64) (ses
 			log.Error("create session - add member fail:", errr.Error())
 			continue
 		}
-		*members = append(*members, *user)
+		members = append(members, user)
 	}
 	ss.Commit()
 	// 通知成员会话创建成功
@@ -79,19 +79,19 @@ func CreateSession(ownerId int64, name string, _type int8, userIds []int64) (ses
 	return
 }
 
-func createSessionNext(session *model.Session, users *[]model.User) {
-	csa := &rpc.CreateSessionAction{
+func createSessionNext(session model.Session, users []model.User) {
+	csa := rpc.CreateSessionAction{
 		SessionId: session.Id,
 		Name:      session.Name,
 		OwnerId:   session.Owner,
 		Type:      rpc.SessionType(session.Type),
 	}
-	bs, err := proto.Marshal(csa)
+	bs, err := proto.Marshal(&csa)
 	if err != nil {
 		log.Error("create session - serial action fail:", err.Error())
 		return
 	}
-	for _, user := range *users {
+	for _, user := range users {
 		// 检查用户是否在线
 		conns, errr := cache.ListUserConn(user.Id)
 		if errr != nil {
@@ -99,8 +99,8 @@ func createSessionNext(session *model.Session, users *[]model.User) {
 			continue
 		}
 		// 用户多端设备
-		for _, conn := range *conns {
-			action := &rpc.Action{
+		for _, conn := range conns {
+			action := rpc.Action{
 				UserId:     user.Id,
 				RemoteAddr: conn.Addr,
 				Time:       session.CreateTime,
@@ -121,7 +121,7 @@ func JoinSession(userId, sessionId int64) (err error) {
 		log.Error("join session - get user fail:", err.Error())
 		return
 	}
-	member := &model.Member{
+	member := model.Member{
 		SessionId:  sessionId,
 		UserId:     user.Id,
 		CreateTime: utils.GetCurrentMS(),
@@ -137,7 +137,7 @@ func JoinSession(userId, sessionId int64) (err error) {
 	return
 }
 
-func joinSessionNext(sessionId int64, newbie *model.User) {
+func joinSessionNext(sessionId int64, newbie model.User) {
 	newbier := rpc.User{
 		Id:   newbie.Id,
 		Name: newbie.Name,
@@ -155,7 +155,7 @@ func joinSessionNext(sessionId int64, newbie *model.User) {
 	if err != nil {
 		log.Error("join session - get members fail:", err.Error())
 	}
-	for _, user := range *users {
+	for _, user := range users {
 		// 检查用户是否在线
 		conns, errr := cache.ListUserConn(user.Id)
 		if errr != nil {
@@ -163,8 +163,8 @@ func joinSessionNext(sessionId int64, newbie *model.User) {
 			continue
 		}
 		// 用户多端设备
-		for _, conn := range *conns {
-			action := &rpc.Action{
+		for _, conn := range conns {
+			action := rpc.Action{
 				UserId:     user.Id,
 				RemoteAddr: conn.Addr,
 				Time:       utils.GetCurrentMS(),
@@ -196,7 +196,7 @@ func QuitSession(userId, sessionId int64) (err error) {
 	return
 }
 
-func quitSessionNext(sessionId int64, deler *model.User) {
+func quitSessionNext(sessionId int64, deler model.User) {
 	jsa := rpc.QuitSessionAction{
 		SessionId: sessionId,
 		UserId:    deler.Id,
@@ -211,8 +211,8 @@ func quitSessionNext(sessionId int64, deler *model.User) {
 		log.Error("quit session - get members fail:", err.Error())
 	}
 	// 退出者也要发送
-	*users = append(*users, *deler)
-	for _, user := range *users {
+	users = append(users, deler)
+	for _, user := range users {
 		// 检查用户是否在线
 		conns, errr := cache.ListUserConn(user.Id)
 		if errr != nil {
@@ -220,8 +220,8 @@ func quitSessionNext(sessionId int64, deler *model.User) {
 			continue
 		}
 		// 用户多端设备
-		for _, conn := range *conns {
-			action := &rpc.Action{
+		for _, conn := range conns {
+			action := rpc.Action{
 				UserId:     user.Id,
 				RemoteAddr: conn.Addr,
 				Time:       utils.GetCurrentMS(),
@@ -237,7 +237,7 @@ func quitSessionNext(sessionId int64, deler *model.User) {
 }
 
 func RenameSession(userId, sessionId int64, name string) (err error) {
-	isExist, err := dao.IsUserInSession(userId, sessionId)
+	isExist, err := dao.IsMember(userId, sessionId)
 	if err != nil {
 		log.Error("rename session - check member fail:", err.Error())
 		return
@@ -271,7 +271,7 @@ func renameSessionNext(sessionId int64, name string) {
 	if err != nil {
 		log.Error("rename session - get members fail:", err.Error())
 	}
-	for _, user := range *users {
+	for _, user := range users {
 		// 检查用户是否在线
 		conns, errr := cache.ListUserConn(user.Id)
 		if errr != nil {
@@ -279,8 +279,8 @@ func renameSessionNext(sessionId int64, name string) {
 			continue
 		}
 		// 用户多端设备
-		for _, conn := range *conns {
-			action := &rpc.Action{
+		for _, conn := range conns {
+			action := rpc.Action{
 				UserId:     user.Id,
 				RemoteAddr: conn.Addr,
 				Time:       utils.GetCurrentMS(),

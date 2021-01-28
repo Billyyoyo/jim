@@ -14,7 +14,7 @@ var (
 	cli2 rpc.SocketServiceClient
 )
 
-func init() {
+func Init() {
 	conn, err := grpc.Dial("localhost:4000", grpc.WithInsecure())
 	if err != nil {
 		panic("grpc start up error: " + err.Error())

@@ -1,0 +1,19 @@
+server:
+  mode: debug
+  schema: http
+  host: localhost
+  port: 4004
+  logfile: ./log/oauth-
+  mainTokenExpired: 30
+  authTokenExpired: 1
+
+redis:
+  addr: localhost:6379
+  prefix: oauth
+
+database:
+  addr: localhost
+  port: 3306
+  user: root
+  password: hanjing
+  db: jim

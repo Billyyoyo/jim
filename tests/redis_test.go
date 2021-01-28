@@ -15,7 +15,7 @@ func TestToken(t *testing.T) {
 }
 
 func TestSaveUserConn(t *testing.T) {
-	conn1 := &model.UserState{
+	conn1 := model.UserState{
 		Server:   "localhost:5000",
 		Addr:     "127.0.0.1:43334",
 		DeviceId: 4,
@@ -24,8 +24,7 @@ func TestSaveUserConn(t *testing.T) {
 }
 
 func TestGetUserConn(t *testing.T) {
-	conn := &model.UserState{}
-	err := cache.GetUserConn(1, 19, conn)
+	conn, err := cache.GetUserConn(1, 19)
 	if err != nil {
 		log.Error(err.Error())
 		return
