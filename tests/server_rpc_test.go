@@ -219,15 +219,3 @@ func TestRpcSyncMessage(t *testing.T) {
 		printj(message)
 	}
 }
-
-func TestAuthorization(t *testing.T) {
-	req := &rpc.AuthReq{
-		Code: "abc",
-	}
-	resp, err := cli.Authorization(context.Background(), req)
-	if err!=nil{
-		printl(err.Error())
-		return
-	}
-	printj(resp)
-}

@@ -5,6 +5,7 @@ import (
 	"github.com/panjf2000/gnet"
 	log "github.com/sirupsen/logrus"
 	"jim/common/tool"
+	"jim/tcp/core"
 	"testing"
 	"time"
 )
@@ -48,7 +49,7 @@ func TestSocketServer(t *testing.T) {
 	err := gnet.Serve(socketServer, addr,
 		gnet.WithMulticore(true),
 		gnet.WithTCPKeepAlive(time.Minute*5),
-		//gnet.WithCodec(core.NewJimDataFrameCodec()),
+		gnet.WithCodec(core.NewJimDataFrameCodec()),
 		gnet.WithTicker(false))
 	if err != nil {
 		panic(err)

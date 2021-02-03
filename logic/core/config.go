@@ -61,7 +61,7 @@ func confLog() {
 
 func confConfig() {
 	log.Info("------config file-----")
-	bs, err := ioutil.ReadFile("/home/billyyoyo/workspace/jim/conf/logic.yaml")
+	bs, err := ioutil.ReadFile("/home/billyyoyo/workspace/jim/jim_server/conf/logic.yaml")
 	if err != nil {
 		panic(errors.New("config file load error: " + err.Error()))
 		return

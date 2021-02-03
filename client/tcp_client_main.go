@@ -1,13 +1,11 @@
 package main
 
 import (
-	"bufio"
 	"flag"
 	"fmt"
 	log "github.com/sirupsen/logrus"
 	"jim/client/core"
 	"os"
-	"strings"
 )
 
 var (
@@ -62,11 +60,6 @@ func connectServer(uid int64, token, socketAddr string) {
 }
 
 func inputer() {
-	reader := bufio.NewReader(os.Stdin)
-	for {
-		str, _ := reader.ReadString('\n')
-		str = str[0 : len(str)-1]
-		str = strings.Trim(str, " ")
-		client.Command([]byte(str))
-	}
+
 }
+
