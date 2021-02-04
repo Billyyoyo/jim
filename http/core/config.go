@@ -15,10 +15,13 @@ import (
 
 type appConfig struct {
 	Server struct {
-		Mode    string `yaml:"mode"`
-		Host    string `yaml:"host"`
-		Port    int    `yaml: "port"`
-		LogFile string `yaml: "logfile"`
+		Mode          string `yaml:"mode"`
+		Host          string `yaml:"host"`
+		Port          int    `yaml: "port"`
+		LogFile       string `yaml: "logfile"`
+		OauthApi      string `yaml: "oauthapi"`
+		OauthCallback string `yaml: "oauthcallback"`
+		OauthAppId    string `yaml: "oauthappid"`
 	}
 
 	Redis struct {

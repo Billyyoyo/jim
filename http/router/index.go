@@ -9,6 +9,7 @@ import (
 func Route(engine *gin.Engine) {
 	engine.LoadHTMLGlob("http/templates/*")
 	engine.GET("/index", controller.Index)
+	engine.GET("/auth/login", controller.Login)
 	engine.GET("/auth/callback", controller.AuthCallback)
 	apiOneGroup := engine.Group("/jim/api/v1")
 	{

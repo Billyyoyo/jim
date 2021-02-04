@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"jim/common/utils"
+	"net/url"
+
 	//tool2 "jim/http/tool"
 	"jim/oauth/dao"
 	"jim/oauth/model"
@@ -105,4 +107,10 @@ func testArr(values ...string) {
 	if values == nil {
 		fmt.Println("nil")
 	}
+}
+
+func TestUrlEncode(t *testing.T) {
+	str := "http://localhost:4001/auth/callback"
+	text := url.QueryEscape(str)
+	println(text)
 }

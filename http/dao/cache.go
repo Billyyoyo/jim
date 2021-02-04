@@ -2,6 +2,7 @@ package dao
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/go-redis/redis/v8"
 	"jim/http/core"
@@ -32,6 +33,19 @@ func SaveToken(userId int64, serialNo, token string) (err error) {
 	if cmd.Err() != nil {
 		err = cmd.Err()
 		return
+	}
+	return
+}
+
+func RefreshToken(token string) (err error) {
+	key := fmt.Sprintf("%s_user_token_%s", core.AppConfig.Redis.Prefix, token)
+	cmd := client.PExpire(context.Background(), key, time.Hour*24*7)
+	ret, err := cmd.Result()
+	if err != nil {
+		return
+	}
+	if !ret {
+		err = errors.New("refresh token failed")
 	}
 	return
 }

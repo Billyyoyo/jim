@@ -3,6 +3,9 @@ server:
   host: localhost
   port: 4001
   logfile: ./log/http-
+  oauthapi: http://localhost:4004/authorize
+  oauthcallback: http://localhost:4001/auth/callback
+  oauthappid: 10000
 
 redis:
   addr: localhost:6379

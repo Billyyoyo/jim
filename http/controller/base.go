@@ -16,6 +16,7 @@ const (
 	CODE_PARAMS
 	CODE_NO_USER_INFO
 	CODE_RESTFUL
+	CODE_PERSISTENCE
 )
 
 var (
@@ -28,6 +29,7 @@ var (
 		"参数错误",
 		"没有用户信息",
 		"服务调用失败",
+		"数据持久化失败",
 	}
 )
 

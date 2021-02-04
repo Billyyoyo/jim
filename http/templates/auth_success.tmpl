@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Application auth callback</title>
+    <style></style>
+</head>
+<body onload="onPageLoad()">
+<h1 style="text-align: center;display: block;position: absolute;width: 100vw;top: 50%;transform: translateY(-50%);">
+    Welcome!<span id="token"></span></h1>
+<script type="text/javascript">
+    function onPageLoad() {
+        let token = getCookie('jim_token')
+        document.getElementById('token').innerText = token
+    }
+
+    function getCookie(name) {
+        let prefix = name + '='
+        let start = document.cookie.indexOf(prefix)
+        if (start == -1) {
+            return null;
+        }
+        let end = document.cookie.indexOf(';', start + prefix.length)
+        if (end == -1) {
+            end = document.cookie.length;
+        }
+        let value = document.cookie.substring(start + prefix.length, end)
+        return unescape(value);
+    }
+</script>
+</body>
+</html>
